@@ -89,7 +89,7 @@ sudo ./lgl-system-loadout
 | **Browsers** | Firefox, Chromium, Chrome, Brave, Vivaldi, LibreWolf |
 | **Communication** | Thunderbird, Discord, Vesktop, Spotify |
 | **KDE Theming** | KZones, Panel Colorizer |
-| **CachyOS Kernel** | kernel-cachyos, scx-scheds, scx-manager, scx-tools |
+| **CachyOS Kernel** | kernel-cachyos, scx-scheds, scx-manager, scx-tools | Secureboot will need to be disabled or you will get an error on boot
 
 ---
 
