@@ -4,6 +4,11 @@ All notable changes to LGL System Loadout are documented here.
 
 ---
 
+## [1.0.3] - 2026-03-10
+
+### Fixed
+- Desktop file renamed to reverse-DNS format so AppStream validation passes and app appears in Discover
+
 ## [1.0.2] - 2026-03-10
 
 ### Fixed
