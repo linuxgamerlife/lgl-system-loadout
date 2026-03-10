@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        1.0.1
+Version:        1.0.2
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -34,7 +34,7 @@ Features:
   - Single polkit password prompt via pkexec
 
 %prep
-%setup -q -n lgl-system-loadout-1.0.1
+%setup -q -n lgl-system-loadout-1.0.2
 
 %build
 mkdir -p build
@@ -111,6 +111,10 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Tue Mar 10 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.0.2-1
+- Fixed AppStream metadata: component ID corrected to match desktop file name
+- Discover/GNOME Software can now find and display the application
+
 * Tue Mar 10 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.0.1-1
 - Panel Colorizer download fixed: QTemporaryDir path contained spaces breaking bash variable expansion
 - Panel Colorizer log output no longer shows garbled binary text from file(1) command
