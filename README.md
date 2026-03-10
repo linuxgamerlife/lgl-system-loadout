@@ -14,46 +14,14 @@ Pick your loadout. Hit install. Your system is ready.
 
 ---
 
-## What's new in 1.0.1
+## Overview
 
-Special thanks to **Mojibake.d** for testing 1.0.0 and reporting the bugs that made this release happen 🙌
+LGL System Loadout is a graphical wizard that gets a fresh Fedora install ready in minutes. Choose exactly what you want from a curated list of packages across gaming, multimedia, content creation, development tools, browsers, communication apps, GPU drivers, virtualisation, KDE theming, and the CachyOS kernel.
 
-### Fixed
-- **Panel Colorizer download failing** — the temp directory path contained spaces which broke the bash download step. Fixed to use a clean `/tmp` path.
-- **Panel Colorizer log showing garbled text** — binary output from the `file` command was being written to the log window. Removed; the log now shows only download progress and file size.
-- **KZones download failing** — same space-in-path issue as Panel Colorizer. Fixed.
-- **Kernel warning box overlapping log output** — on the System Update page, the kernel update warning box rendered on top of the log when a new kernel was detected. Fixed by correcting the layout order.
-- **Reboot confirmation dialog** — "Unsaved work will be lost" was unclear. Now explicitly states to save open files in other applications before rebooting, and that the wizard will need to be run again after.
-
-### Added
-- **Secure Boot warning on the CachyOS Kernel page** — a clear warning that Secure Boot must be disabled in BIOS/UEFI after installing the CachyOS kernel, with guidance on how to do it.
-
----
-
-## Installation
-
-### Recommended — COPR (Fedora 43)
-
-```bash
-sudo dnf copr enable linuxgamerlife/lgl-system-loadout
-sudo dnf install lgl-system-loadout
-```
-
-After installation the app appears in your KDE launcher under **Utilities** as **LGL System Loadout**. Launch it and a single password prompt will appear — the wizard then runs fully elevated.
-
-### Build from source
-
-```bash
-sudo dnf install cmake gcc-c++ qt6-qtbase-devel
-unzip lgl-system-loadout-1.0.1.zip
-cd lgl-system-loadout-1.0.1
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
-sudo ./lgl-system-loadout
-```
-
-> **Important:** Build on the machine you intend to run it on. A binary built against a newer Qt6 than your system has will fail with `version 'Qt_6.10' not found`. If you see this, run `sudo dnf upgrade qt6-qtbase` first, or build from source locally.
+- No defaults — nothing is pre-selected
+- Every item shows its current installed state before you commit
+- All checks run concurrently so pages load instantly
+- Installs only — nothing is removed without your knowledge
 
 ---
 
@@ -61,9 +29,51 @@ sudo ./lgl-system-loadout
 
 | | |
 |---|---|
-| **OS** | Fedora 43+ |
-| **Desktop** | KDE Plasma |
-| **Connection** | Internet required during install |
+| **OS** | Fedora 43+ (developed and tested on Fedora 43) |
+| **Desktop** | KDE Plasma (some items are KDE-specific) |
+| **Connection** | Internet required |
+
+> The wizard includes a guided system update step on page 2. It is recommended to let it run before making any selections.
+
+---
+
+## Building from source
+
+### 1. Install build dependencies
+
+```bash
+sudo dnf install cmake gcc-c++ qt6-qtbase-devel
+```
+
+### 2. Extract and enter the project folder
+
+```bash
+mkdir -p ~/projects
+mv ~/Downloads/lgl-system-loadout.zip ~/projects/
+cd ~/projects
+unzip lgl-system-loadout.zip
+cd lgl-gui-installer
+```
+
+### 3. Build
+
+```bash
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+```
+
+### 4. Run app
+
+```bash
+chmod +x lgl-system-loadout
+sudo ./lgl-system-loadout
+```
+
+> **Note — Qt version compatibility:** Always build the binary on the same machine you intend to run it on, or on a machine with the same Qt6 version. A binary built against Qt 6.10 will not run on a system with an older Qt6 installed (`version 'Qt_6.10' not found`). If you see this error, either build from source on the target machine or update Qt6 first:
+> ```bash
+> sudo dnf upgrade qt6-qtbase
+> ```
 
 ---
 
@@ -78,7 +88,7 @@ sudo ./lgl-system-loadout
 | **Python** | pip, pipx, yt-dlp, tldr |
 | **Multimedia** | ffmpeg, GStreamer plugins, VLC |
 | **Content Creation** | OBS Studio, Kdenlive, GIMP, Inkscape, Audacity, Blender |
-| **GPU Drivers** | AMD (Mesa, Vulkan, VA-API, firmware) |
+| **GPU Drivers** | AMD (Mesa, Vulkan, VA-API, firmware) · NVIDIA (guided) |
 | **Gaming** | Steam, Lutris, Wine, Protontricks, MangoHud, vkBasalt, GOverlay, Heroic, ProtonUp-Qt, ProtonPlus, Flatseal |
 | **Virtualisation** | virt-manager, libvirt, virt-install, virt-viewer |
 | **Browsers** | Firefox, Chromium, Chrome, Brave, Vivaldi, LibreWolf |
@@ -88,11 +98,9 @@ sudo ./lgl-system-loadout
 
 ---
 
-## Release assets
+## License
 
-| File | Description |
-|---|---|
-| `lgl-system-loadout-1.0.1.zip` | Source code |
+MIT — see [LICENSE](LICENSE) for details.
 
 ---
 
