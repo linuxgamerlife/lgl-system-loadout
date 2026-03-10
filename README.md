@@ -1,6 +1,6 @@
 <div align="center">
 
-# LGL System Loadout v1.0.1
+# LGL System Loadout
 
 **A curated Fedora setup wizard for gaming, content creation, and development.**  
 Pick your loadout. Hit install. Your system is ready.
