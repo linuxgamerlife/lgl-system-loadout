@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=LGL System Loadout
+GenericName=Fedora Setup Wizard
+Comment=Set up your Fedora system for gaming, content creation, and development
+Exec=pkexec /usr/bin/lgl-system-loadout
+Icon=lgl-system-loadout
+Terminal=false
+Categories=Utility;System;
+Keywords=fedora;setup;gaming;install;packages;steam;drivers;
+StartupNotify=true
+StartupWMClass=lgl-system-loadout

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+
+  <id>com.linuxgamerlife.lgl-system-loadout</id>
+
+  <name>LGL System Loadout</name>
+  <summary>Guided setup wizard for Fedora gaming, content creation, and development</summary>
+
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+
+  <description>
+    <p>
+      LGL System Loadout is a graphical wizard that gets a fresh Fedora install ready in minutes.
+      Choose exactly what you want from a curated list of packages across gaming, multimedia,
+      content creation, development tools, browsers, communication apps, GPU drivers,
+      virtualisation, KDE theming, and the CachyOS kernel.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>No defaults — nothing is pre-selected</li>
+      <li>Every item shows its current installed state before you commit</li>
+      <li>All checks run concurrently so pages load instantly</li>
+      <li>Installs only — nothing is removed without your knowledge</li>
+      <li>Single polkit password prompt via pkexec</li>
+    </ul>
+    <p>What you can install:</p>
+    <ul>
+      <li>Gaming — Steam, Lutris, Wine, Heroic, MangoHud, vkBasalt, ProtonUp-Qt, and more</li>
+      <li>Content Creation — OBS Studio, Kdenlive, GIMP, Inkscape, Audacity, Blender</li>
+      <li>GPU Drivers — AMD Mesa, Vulkan, VA-API</li>
+      <li>Browsers — Firefox, Chromium, Chrome, Brave, Vivaldi, LibreWolf</li>
+      <li>Communication — Thunderbird, Discord, Vesktop, Spotify</li>
+      <li>Virtualisation — virt-manager, libvirt</li>
+      <li>KDE Theming — KZones, Panel Colorizer</li>
+      <li>CachyOS Kernel — performance-optimised kernel with BORE scheduler</li>
+      <li>System Tools — btop, fastfetch, distrobox, timeshift, and more</li>
+      <li>Multimedia — ffmpeg, GStreamer plugins, VLC</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">lgl-system-loadout.desktop</launchable>
+
+  <url type="homepage">https://github.com/linuxgamerlife/fedora-gui-installer</url>
+  <url type="bugtracker">https://github.com/linuxgamerlife/fedora-gui-installer/issues</url>
+
+  <developer_name>LinuxGamerLife</developer_name>
+
+  <categories>
+    <category>Utility</category>
+    <category>System</category>
+  </categories>
+
+  <keywords>
+    <keyword>fedora</keyword>
+    <keyword>setup</keyword>
+    <keyword>gaming</keyword>
+    <keyword>install</keyword>
+    <keyword>packages</keyword>
+    <keyword>steam</keyword>
+    <keyword>drivers</keyword>
+    <keyword>wizard</keyword>
+  </keywords>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+
+  <releases>
+    <release version="1.0.1" date="2026-03-10">
+      <description>
+        <p>Bug fix release.</p>
+        <ul>
+          <li>Fixed Panel Colorizer download failing due to spaces in temp directory path</li>
+          <li>Fixed Panel Colorizer log showing garbled binary text</li>
+          <li>Fixed KZones download failing due to same space-in-path issue</li>
+          <li>Fixed kernel warning box overlapping log output on System Update page</li>
+          <li>Clarified reboot confirmation dialog wording</li>
+          <li>Added Secure Boot warning on CachyOS Kernel page</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.0" date="2026-03-09">
+      <description>
+        <p>Initial release.</p>
+      </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1" />
+
+</component>
