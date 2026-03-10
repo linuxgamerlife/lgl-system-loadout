@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
 
-  <id>lgl-system-loadout</id>
+  <id>com.linuxgamerlife.lgl-system-loadout</id>
 
   <name>LGL System Loadout</name>
   <summary>Guided setup wizard for Fedora gaming, content creation, and development</summary>
@@ -39,7 +39,7 @@
     </ul>
   </description>
 
-  <launchable type="desktop-id">lgl-system-loadout.desktop</launchable>
+  <launchable type="desktop-id">com.linuxgamerlife.lgl-system-loadout.desktop</launchable>
 
   <url type="homepage">https://github.com/linuxgamerlife/fedora-gui-installer</url>
   <url type="bugtracker">https://github.com/linuxgamerlife/fedora-gui-installer/issues</url>
@@ -72,6 +72,14 @@
   </requires>
 
   <releases>
+    <release version="1.0.3" date="2026-03-10">
+      <description>
+        <p>Packaging fix.</p>
+        <ul>
+          <li>Desktop file renamed to reverse-DNS format to satisfy AppStream validation</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.2" date="2026-03-10">
       <description>
         <p>Packaging fix.</p>

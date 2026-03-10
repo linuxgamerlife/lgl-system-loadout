@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        1.0.2
+Version:        1.0.3
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -34,7 +34,7 @@ Features:
   - Single polkit password prompt via pkexec
 
 %prep
-%setup -q -n lgl-system-loadout-1.0.2
+%setup -q -n lgl-system-loadout-1.0.3
 
 %build
 mkdir -p build
@@ -50,8 +50,8 @@ install -Dm755 build/lgl-system-loadout \
     %{buildroot}%{_bindir}/lgl-system-loadout
 
 # Desktop entry
-install -Dm644 packaging/lgl-system-loadout.desktop \
-    %{buildroot}%{_datadir}/applications/lgl-system-loadout.desktop
+install -Dm644 packaging/com.linuxgamerlife.lgl-system-loadout.desktop \
+    %{buildroot}%{_datadir}/applications/com.linuxgamerlife.lgl-system-loadout.desktop
 
 # Polkit policy
 install -Dm644 packaging/lgl-system-loadout.policy \
@@ -101,7 +101,7 @@ fi
 %files
 %license LICENSE
 %{_bindir}/lgl-system-loadout
-%{_datadir}/applications/lgl-system-loadout.desktop
+%{_datadir}/applications/com.linuxgamerlife.lgl-system-loadout.desktop
 %{_datadir}/metainfo/lgl-system-loadout.metainfo.xml
 %{_datadir}/polkit-1/actions/com.linuxgamerlife.lgl-system-loadout.policy
 %{_datadir}/icons/hicolor/256x256/apps/lgl-system-loadout.png
@@ -111,6 +111,10 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Tue Mar 10 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.0.3-1
+- Desktop file renamed to reverse-DNS format (com.linuxgamerlife.lgl-system-loadout.desktop)
+- AppStream metadata now passes validation; app appears correctly in Discover
+
 * Tue Mar 10 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.0.2-1
 - Fixed AppStream metadata: component ID corrected to match desktop file name
 - Discover/GNOME Software can now find and display the application
