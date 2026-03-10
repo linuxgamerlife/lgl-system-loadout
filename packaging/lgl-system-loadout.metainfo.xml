@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
 
-  <id>com.linuxgamerlife.lgl-system-loadout</id>
+  <id>lgl-system-loadout</id>
 
   <name>LGL System Loadout</name>
   <summary>Guided setup wizard for Fedora gaming, content creation, and development</summary>
@@ -72,6 +72,11 @@
   </requires>
 
   <releases>
+    <release version="1.0.2" date="2026-03-10">
+      <description>
+        <p>Packaging fix: corrected AppStream metadata name tag.</p>
+      </description>
+    </release>
     <release version="1.0.1" date="2026-03-10">
       <description>
         <p>Bug fix release.</p>
