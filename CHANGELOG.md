@@ -9,6 +9,9 @@ All notable changes to LGL System Loadout are documented here.
 ### Fixed
 - Metainfo file renamed to reverse-DNS format to match component ID and desktop file
 
+### Known issues
+AppStream validation passes cleanly with no warnings, but application does not show in Discover still.
+
 ## [1.0.3] - 2026-03-10
 
 ### Fixed
