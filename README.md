@@ -37,6 +37,20 @@ LGL System Loadout is a graphical wizard that gets a fresh Fedora install ready 
 
 ---
 
+## Installation
+
+### No terminal
+Download the RPM below and run it. It will open in Discover. Once installed, there will be a new icon in Utilities
+
+### Recommended — COPR (Fedora 43)
+
+```bash
+sudo dnf copr enable linuxgamerlife/lgl-system-loadout
+sudo dnf install lgl-system-loadout
+```
+
+After installation the app appears in your KDE launcher under **Utilities** as **LGL System Loadout**. Launch it and a single password prompt will appear — the wizard then runs fully elevated.
+
 ## Building from source
 
 ### 1. Install build dependencies
