@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          dnf -y update
+          dnf -y install \
+            cmake \
+            gcc-c++ \
+            git \
+            ninja-build \
+            qt6-qtbase-devel
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        env:
+          CTEST_OUTPUT_ON_FAILURE: 1
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build --output-on-failure

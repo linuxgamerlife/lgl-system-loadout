@@ -67,7 +67,7 @@ mkdir -p ~/projects
 mv ~/Downloads/lgl-system-loadout.zip ~/projects/
 cd ~/projects
 unzip lgl-system-loadout.zip
-cd lgl-gui-installer
+cd lgl-system-loadout
 ```
 
 ### 3. Build
@@ -89,6 +89,8 @@ sudo ./lgl-system-loadout
 > ```bash
 > sudo dnf upgrade qt6-qtbase
 > ```
+>
+> Local verification needs the build tools above plus the Qt6 development packages on your machine.
 
 ---
 
