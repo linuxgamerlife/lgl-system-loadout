@@ -19,39 +19,19 @@ GamingPage::GamingPage(MainWizard *wizard) : QWizardPage(wizard), m_wiz(wizard)
 
 void GamingPage::initializePage()
 {
-    if (layout()) {
-        QLayoutItem *item;
-        while ((item = layout()->takeAt(0)) != nullptr) {
-            if (item->widget()) item->widget()->deleteLater();
-            delete item;
-        }
-        delete layout();
-    }
+    // Rebuild the page each time so Refresh can repopulate the installed-state
+    // badges from a clean layout.
+    clearWidgetLayout(this);
     m_boxes.clear();
 
     auto *outerLayout = new QVBoxLayout(this);
 
-    auto *toolbarWidget = new QWidget;
-    auto *toolbar = new QHBoxLayout(toolbarWidget);
-    toolbar->setContentsMargins(0,0,0,0);
-    toolbar->addStretch();
-    auto *allBtn  = makeToolbarBtn("Select All");
-    auto *noneBtn = makeToolbarBtn("Select None");
-    connect(allBtn,  &QPushButton::clicked, this, &GamingPage::selectAll);
-    connect(noneBtn, &QPushButton::clicked, this, &GamingPage::selectNone);
-    m_checkingLabel = new QLabel("  Checking...");
-    m_checkingLabel->setStyleSheet("color: palette(highlight); font-style: italic;");
-    m_checkingLabel->setVisible(true);
-    auto *refreshBtn = makeToolbarBtn("Refresh");
-    refreshBtn->setToolTip("Re-check installed status of all items");
-    connect(refreshBtn, &QPushButton::clicked, this, [this] { initializePage(); });
-    toolbar->addSpacing(8);
-    toolbar->addWidget(refreshBtn);
-    toolbar->addSpacing(4);
-    toolbar->addWidget(m_checkingLabel);
-    toolbar->addWidget(allBtn);
-    toolbar->addWidget(noneBtn);
-    outerLayout->addWidget(toolbarWidget);
+    auto toolbarUi = makeSelectionToolbar(this, this,
+        [this] { initializePage(); },
+        [this] { selectAll(); },
+        [this] { selectNone(); });
+    m_checkingLabel = toolbarUi.checkingLabel;
+    outerLayout->addWidget(toolbarUi.widget);
 
     auto *scroll = new SmoothScrollArea;
     scroll->setWidgetResizable(true);
@@ -138,23 +118,7 @@ void GamingPage::initializePage()
     checks.append({"flatseal",   []{ return isFlatpakInstalled("com.github.tchx84.Flatseal"); }});
 
     runChecksAsync(this, checks, [this](QMap<QString,bool> results) {
-        for (auto it = results.constBegin(); it != results.constEnd(); ++it) {
-            if (m_boxes.contains(it.key())) {
-                auto *cb = m_boxes[it.key()];
-                // Update the badge label next to the checkbox
-                auto *row = cb->parentWidget();
-                if (row) {
-                    auto *lbl = row->findChild<QLabel*>("badge");
-                    if (lbl) {
-                        lbl->setText(it.value() ? "[Installed]" : "[Not Installed]");
-                        lbl->setStyleSheet(it.value()
-                            ? "color: #3db03d; font-weight: bold; font-size: 8pt;"
-                            : "color: #cc7700; font-weight: bold; font-size: 8pt;");
-                    }
-                }
-            }
-        }
-        if (m_checkingLabel) m_checkingLabel->setVisible(false);
+        applySelectionCheckResults(m_boxes, results, m_checkingLabel);
     });
 }
 

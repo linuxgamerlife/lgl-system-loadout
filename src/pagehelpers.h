@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <QWidget>
 #include <QCheckBox>
 #include <QLabel>
@@ -125,6 +126,28 @@ inline bool isFlatpakInstalled(const QString &appId)
 // OpenH264 support removed
 inline bool isOpenH264Enabled() { return false; }
 
+// Toolbar button helper - consistent sizing that adapts to theme font
+inline QPushButton* makeToolbarBtn(const QString &text, QWidget *parent = nullptr)
+{
+    auto *btn = new QPushButton(text, parent);
+    btn->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    btn->setMinimumWidth(btn->fontMetrics().horizontalAdvance(text) + 24);
+    return btn;
+}
+
+// Description label that reads well on both light and dark themes
+inline QLabel* makeDescLabel(QWidget *parent, const QString &desc)
+{
+    auto *dl = new QLabel("    " + desc, parent);
+    dl->setWordWrap(true);
+    auto pal = dl->palette();
+    auto c = pal.color(QPalette::WindowText);
+    c.setAlphaF(0.55f);
+    pal.setColor(QPalette::WindowText, c);
+    dl->setPalette(pal);
+    return dl;
+}
+
 inline bool isKwinScriptInstalled(const QString &name, const QString &user)
 {
     QProcess p;
@@ -201,6 +224,95 @@ inline void runChecksAsync(
     });
     watcher->setFuture(future);
 }
+
+inline void clearWidgetLayout(QWidget *page)
+{
+    if (!page || !page->layout()) return;
+    // QWizardPage reuses the same instance, so Refresh needs a full teardown
+    // before we rebuild the checkboxes and badges.
+    QLayout *layout = page->layout();
+    QLayoutItem *item = nullptr;
+    while ((item = layout->takeAt(0))) {
+        if (item->widget()) item->widget()->deleteLater();
+        delete item;
+    }
+    delete layout;
+}
+
+struct SelectionToolbar {
+    QWidget *widget = nullptr;
+    QLabel *checkingLabel = nullptr;
+    QPushButton *refreshBtn = nullptr;
+    QPushButton *selectAllBtn = nullptr;
+    QPushButton *selectNoneBtn = nullptr;
+};
+
+inline SelectionToolbar makeSelectionToolbar(
+    QWidget *parent,
+    QObject *context,
+    const std::function<void()> &onRefresh,
+    const std::function<void()> &onSelectAll,
+    const std::function<void()> &onSelectNone)
+{
+    SelectionToolbar toolbarUi;
+    toolbarUi.widget = new QWidget(parent);
+    auto *toolbar = new QHBoxLayout(toolbarUi.widget);
+    toolbar->setContentsMargins(0, 0, 0, 0);
+    toolbar->addStretch();
+
+    toolbarUi.selectAllBtn = makeToolbarBtn("Select All", toolbarUi.widget);
+    toolbarUi.selectNoneBtn = makeToolbarBtn("Select None", toolbarUi.widget);
+    toolbarUi.checkingLabel = new QLabel("  Checking...", toolbarUi.widget);
+    toolbarUi.checkingLabel->setStyleSheet("color: palette(highlight); font-style: italic;");
+    toolbarUi.checkingLabel->setVisible(true);
+    toolbarUi.refreshBtn = makeToolbarBtn("Refresh", toolbarUi.widget);
+    toolbarUi.refreshBtn->setToolTip("Re-check installed status of all items");
+
+    QObject::connect(toolbarUi.selectAllBtn, &QPushButton::clicked, context, [onSelectAll] {
+        if (onSelectAll) onSelectAll();
+    });
+    QObject::connect(toolbarUi.selectNoneBtn, &QPushButton::clicked, context, [onSelectNone] {
+        if (onSelectNone) onSelectNone();
+    });
+    QObject::connect(toolbarUi.refreshBtn, &QPushButton::clicked, context, [onRefresh] {
+        if (onRefresh) onRefresh();
+    });
+
+    toolbar->addSpacing(8);
+    toolbar->addWidget(toolbarUi.refreshBtn);
+    toolbar->addSpacing(4);
+    toolbar->addWidget(toolbarUi.checkingLabel);
+    toolbar->addWidget(toolbarUi.selectAllBtn);
+    toolbar->addWidget(toolbarUi.selectNoneBtn);
+    return toolbarUi;
+}
+
+inline void setInstalledBadge(QLabel *badge, bool installed)
+{
+    if (!badge) return;
+    badge->setText(installed ? "[Installed]" : "[Not Installed]");
+    badge->setStyleSheet(installed
+        ? "color: #3db03d; font-weight: bold; font-size: 8pt;"
+        : "color: #cc7700; font-weight: bold; font-size: 8pt;");
+}
+
+inline void applySelectionCheckResults(const QMap<QString, QCheckBox*> &boxes,
+                                       const QMap<QString, bool> &results,
+                                       QLabel *checkingLabel)
+{
+    // Only rows that have a matching key get updated; section headers and
+    // tweak-only rows stay untouched.
+    for (auto it = results.constBegin(); it != results.constEnd(); ++it) {
+        auto boxIt = boxes.constFind(it.key());
+        if (boxIt == boxes.constEnd() || !boxIt.value()) continue;
+        auto *row = boxIt.value()->parentWidget();
+        if (!row) continue;
+        auto *lbl = row->findChild<QLabel*>("badge");
+        setInstalledBadge(lbl, it.value());
+    }
+    if (checkingLabel) checkingLabel->setVisible(false);
+}
+
 inline QCheckBox* makeItemRow(QWidget *parent, QLayout *layout,
                               const QString &label,
                               bool installed,
@@ -227,26 +339,4 @@ inline QCheckBox* makeItemRow(QWidget *parent, QLayout *layout,
 
     layout->addWidget(row);
     return cb;
-}
-
-// Toolbar button helper - consistent sizing that adapts to theme font
-inline QPushButton* makeToolbarBtn(const QString &text, QWidget *parent = nullptr)
-{
-    auto *btn = new QPushButton(text, parent);
-    btn->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    btn->setMinimumWidth(btn->fontMetrics().horizontalAdvance(text) + 24);
-    return btn;
-}
-
-// Description label that reads well on both light and dark themes
-inline QLabel* makeDescLabel(QWidget *parent, const QString &desc)
-{
-    auto *dl = new QLabel("    " + desc, parent);
-    dl->setWordWrap(true);
-    auto pal = dl->palette();
-    auto c = pal.color(QPalette::WindowText);
-    c.setAlphaF(0.55f);
-    pal.setColor(QPalette::WindowText, c);
-    dl->setPalette(pal);
-    return dl;
 }
