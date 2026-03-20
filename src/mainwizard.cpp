@@ -17,11 +17,24 @@
 #include "pages/installpage.h"
 #include "pages/donepage.h"
 #include <QProcess>
+#include <QFile>
+#include <QDir>
 #include <QRegularExpression>
 #include "pagehelpers.h"
 
 MainWizard::MainWizard(QWidget *parent) : QWizard(parent)
 {
+    if (m_tempDir.isValid()) {
+        // The theming install steps run `kpackagetool6` as the target user, so
+        // the temp directory must be traversable by that user even though the
+        // files themselves are still owned by root.
+        QFile::setPermissions(
+            m_tempDir.path(),
+            QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner |
+            QFileDevice::ReadGroup | QFileDevice::ExeGroup |
+            QFileDevice::ReadOther | QFileDevice::ExeOther);
+    }
+
     detectSystem();
 
     setWindowTitle("LGL System Loadout");
@@ -357,31 +370,39 @@ QList<InstallStep> MainWizard::buildSteps() const
 
     // ---- Customisation & Theming ----
     if (get("theming/kzones")) {
-        // Use a path inside our owned temp dir — avoids /tmp symlink attacks.
+        // Keep the downloaded script inside the wizard-owned temp dir so the
+        // cleanup is automatic and the path stays safe even when it contains
+        // spaces.
+        const QString tempRoot = m_tempDir.isValid() ? m_tempDir.path() : QDir::tempPath();
+        const QString kzonesPath = QDir(tempRoot).filePath("lgl-kzones.kwinscript");
         S << InstallStep{"kzones_dl", "Download KZones KWin script",
-            {"bash", "-c",
-             "curl -L -o '/tmp/lgl-kzones.kwinscript' "
+            {"curl", "-fL", "-o", kzonesPath,
              "https://github.com/gerritdevriese/kzones/releases/latest/download/kzones.kwinscript"}};
         S << InstallStep{"kzones_install", "Install KZones KWin script",
             {"sudo", "-u", tu, "kpackagetool6", "--type", "KWin/Script",
-             "--install", "/tmp/lgl-kzones.kwinscript"}};
+             "--install", kzonesPath}};
     }
     if (get("theming/panel_colorizer")) {
         // Download via GitHub API to get the actual release asset URL, then install.
         // The asset is a zip containing the plasmoid - we extract it first.
-        // Use /tmp directly with a fixed name to avoid spaces in QTemporaryDir path
-        // breaking the bash heredoc/variable expansion inside the shell step.
-        const QString panelDest = "/tmp/lgl-panel-colorizer.plasmoid";
+        // Quote the temp path explicitly because the install command is passed
+        // through `bash -c` and can otherwise break on whitespace.
+        const QString tempRoot = m_tempDir.isValid() ? m_tempDir.path() : QDir::tempPath();
+        const QString panelDest = QDir(tempRoot).filePath("lgl-panel-colorizer.plasmoid");
+        auto shellQuote = [](QString value) {
+            value.replace("'", "'\"'\"'");
+            return QString("'%1'").arg(value);
+        };
         S << InstallStep{"panel_col_dl", "Download Panel Colorizer plasmoid",
             {"bash", "-c",
              "ASSET=$(curl -sL https://api.github.com/repos/luisbocanegra/plasma-panel-colorizer/releases/latest"
              " | grep browser_download_url | grep '\\.plasmoid' | head -1 | cut -d'\"' -f4) && "
              "echo \"Downloading: $ASSET\" && "
-             "curl -L -o '/tmp/lgl-panel-colorizer.plasmoid' \"$ASSET\" && "
-             "ls -lh '/tmp/lgl-panel-colorizer.plasmoid'"}};
+             "curl -fL -o " + shellQuote(panelDest) + " \"$ASSET\" && "
+             "ls -lh " + shellQuote(panelDest)}};
         S << InstallStep{"panel_col_install", "Install Panel Colorizer plasmoid",
             {"sudo", "-u", tu, "kpackagetool6", "--type", "Plasma/Applet",
-             "--install", "/tmp/lgl-panel-colorizer.plasmoid"}};
+             "--install", panelDest}};
     }
 
     // ---- CachyOS Kernel ----
