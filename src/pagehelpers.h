@@ -13,7 +13,6 @@
 #include <QWheelEvent>
 #include <QThread>
 #include <QFutureWatcher>
-#include <QMutex>
 #include <QtConcurrent/QtConcurrent>
 
 // ---- Smooth scrolling QScrollArea ----
@@ -88,29 +87,20 @@ protected:
 inline bool isDnfInstalled(const QString &pkg)
 {
     QProcess p;
-    // rpm -q is fast (milliseconds). The bash wrapper was adding ~100ms overhead per call.
-    p.start("rpm", {"-q", "--quiet", pkg});
-    if (!p.waitForFinished(3000)) { p.kill(); return false; }
-    if (p.exitCode() == 0) return true;
-    // Fallback: glob match for packages with arch suffix (e.g. steam.x86_64)
-    QProcess p2;
-    p2.start("bash", {"-c", QString("rpm -qa --queryformat '%{NAME}\\n' 2>/dev/null | grep -qx '%1'").arg(pkg)});
-    if (!p2.waitForFinished(3000)) { p2.kill(); return false; }
-    return p2.exitCode() == 0;
+    p.setProgram("/usr/bin/rpm");
+    p.setArguments({"-q", "--quiet", pkg});
+    p.start();
+    p.waitForFinished(-1);  // no timeout — rpm is always fast, never hangs
+    return p.exitCode() == 0;
 }
 
-// For packages where multiple name variants may be installed (e.g. scx-tools vs scx-tools-git)
 inline bool isDnfInstalledAny(const QStringList &pkgs)
 {
     for (const QString &pkg : pkgs) {
-        QProcess p;
-        p.start("rpm", {"-q", "--quiet", pkg});
-        if (!p.waitForFinished(6000)) { p.kill(); continue; }
-        if (p.exitCode() == 0) return true;
+        if (isDnfInstalled(pkg)) return true;
     }
     return false;
 }
-
 inline bool isFlatpakInstalled(const QString &appId)
 {
     // Check both system and user installations
@@ -177,7 +167,7 @@ inline void runChecksAsync(
     QList<QPair<QString, std::function<bool()>>> checks,
     std::function<void(QMap<QString,bool>)> onDone)
 {
-    auto *watcher = new QFutureWatcher<QMap<QString,bool>>(context);
+    auto *watcher = new QFutureWatcher<QMap<QString,bool>>();
     // Guard against context being destroyed before the finished signal fires.
     // If the context QObject is deleted (e.g. page navigation), the callback is
     // a no-op rather than a use-after-free.
@@ -188,15 +178,11 @@ inline void runChecksAsync(
             watcher->deleteLater();
         });
     auto future = QtConcurrent::run([checks]() -> QMap<QString,bool> {
-        // Run all checks in parallel using QtConcurrent::blockingMappedReduced
+        // Run checks sequentially — concurrent rpm processes can interfere
+        // with each other causing silent failures on some systems.
         QMap<QString,bool> results;
-        QMutex mutex;
-        QtConcurrent::blockingMap(checks,
-            [&](const QPair<QString, std::function<bool()>> &item) {
-                bool val = item.second();
-                QMutexLocker lock(&mutex);
-                results[item.first] = val;
-            });
+        for (const auto &item : checks)
+            results[item.first] = item.second();
         return results;
     });
     watcher->setFuture(future);

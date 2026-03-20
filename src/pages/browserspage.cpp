@@ -78,7 +78,7 @@ void BrowsersPage::initializePage()
     QList<QPair<QString, std::function<bool()>>> _checks;
     _checks.append({"firefox", []{ return isDnfInstalled("firefox"); }});
     _checks.append({"chromium", []{ return isDnfInstalled("chromium"); }});
-    _checks.append({"chrome", []{ return isDnfInstalled("google-chrome-stable"); }});
+    _checks.append({"chrome", []{ return isFlatpakInstalled("com.google.Chrome"); }});
     _checks.append({"brave", []{ return isDnfInstalled("brave-browser"); }});
     _checks.append({"vivaldi",   []{ return isDnfInstalled("vivaldi-stable"); }});
     _checks.append({"librewolf", []{ return isFlatpakInstalled("io.gitlab.librewolf-community"); }});

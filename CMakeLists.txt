@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(lgl-system-loadout VERSION 1.0.4 LANGUAGES CXX)
+project(lgl-system-loadout VERSION 1.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,9 +15,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Werror)
 endif()
 
-# Enable AddressSanitizer and UndefinedBehaviorSanitizer for Debug builds (dev standard requirement).
-# ThreadSanitizer is recommended by the standard — enabled separately as it is
-# mutually exclusive with ASan. Set -DCMAKE_BUILD_TYPE=TSan to use it.
+# Enable AddressSanitizer and UndefinedBehaviorSanitizer for Debug builds.
+# ThreadSanitizer is mutually exclusive with ASan — use -DCMAKE_BUILD_TYPE=TSan.
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
@@ -30,6 +29,9 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "TSan")
     endif()
 endif()
 
+# ---------------------------------------------------------------------------
+# GUI application — Qt Widgets, runs as the normal user (never root).
+# ---------------------------------------------------------------------------
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Concurrent)
 
 qt_add_executable(lgl-system-loadout
@@ -49,16 +51,34 @@ qt_add_executable(lgl-system-loadout
     ${PROJECT_SOURCE_DIR}/src/pages/virtpage.cpp        ${PROJECT_SOURCE_DIR}/src/pages/virtpage.h
     ${PROJECT_SOURCE_DIR}/src/pages/browserspage.cpp    ${PROJECT_SOURCE_DIR}/src/pages/browserspage.h
     ${PROJECT_SOURCE_DIR}/src/pages/commspage.cpp       ${PROJECT_SOURCE_DIR}/src/pages/commspage.h
-    ${PROJECT_SOURCE_DIR}/src/pages/themingpage.cpp     ${PROJECT_SOURCE_DIR}/src/pages/themingpage.h
     ${PROJECT_SOURCE_DIR}/src/pages/cachyospage.cpp     ${PROJECT_SOURCE_DIR}/src/pages/cachyospage.h
+    ${PROJECT_SOURCE_DIR}/src/pages/scxpage.cpp         ${PROJECT_SOURCE_DIR}/src/pages/scxpage.h
     ${PROJECT_SOURCE_DIR}/src/pages/reviewpage.cpp      ${PROJECT_SOURCE_DIR}/src/pages/reviewpage.h
-    ${PROJECT_SOURCE_DIR}/src/pages/installpage.cpp     ${PROJECT_SOURCE_DIR}/src/pages/installpage.h
+    ${PROJECT_SOURCE_DIR}/src/pages/installpage.cpp  ${PROJECT_SOURCE_DIR}/src/pages/installpage.h
     ${PROJECT_SOURCE_DIR}/src/pages/donepage.cpp        ${PROJECT_SOURCE_DIR}/src/pages/donepage.h
 )
 
-target_link_libraries(lgl-system-loadout PRIVATE Qt6::Core Qt6::Widgets Qt6::Concurrent)
+target_link_libraries(lgl-system-loadout PRIVATE Qt6::Core Qt6::Widgets Qt6::Concurrent Qt6::Network)
 
 install(TARGETS lgl-system-loadout RUNTIME DESTINATION /usr/local/bin)
+
+# ---------------------------------------------------------------------------
+# Privileged helper — Qt Core only, no Widgets dependency.
+# Installed to /usr/libexec/lgl-system-loadout/ (FHS location for helpers).
+# Launched exclusively via pkexec — never run directly by the user.
+# ---------------------------------------------------------------------------
+find_package(Qt6 REQUIRED COMPONENTS Network)
+
+qt_add_executable(lgl-system-loadout-helper
+    ${PROJECT_SOURCE_DIR}/src/helper/main.cpp
+    ${PROJECT_SOURCE_DIR}/src/helper/helperserver.cpp   ${PROJECT_SOURCE_DIR}/src/helper/helperserver.h
+    ${PROJECT_SOURCE_DIR}/src/helper/commandexecutor.cpp ${PROJECT_SOURCE_DIR}/src/helper/commandexecutor.h
+)
+
+target_link_libraries(lgl-system-loadout-helper PRIVATE Qt6::Core Qt6::Network)
+
+install(TARGETS lgl-system-loadout-helper
+        RUNTIME DESTINATION /usr/libexec/lgl-system-loadout)
 
 # ---------------------------------------------------------------------------
 # Tests — require Qt6::Test; skipped automatically if the component is absent.
@@ -74,7 +94,7 @@ if(Qt6Test_FOUND)
         ${PROJECT_SOURCE_DIR}/src/installworker.h
     )
     target_include_directories(tst_installworker PRIVATE ${PROJECT_SOURCE_DIR}/src)
-    target_link_libraries(tst_installworker PRIVATE Qt6::Core Qt6::Test)
+    target_link_libraries(tst_installworker PRIVATE Qt6::Core Qt6::Test Qt6::Network)
 
     add_test(NAME InstallWorker COMMAND tst_installworker)
     set_tests_properties(InstallWorker PROPERTIES TIMEOUT 60)

@@ -11,32 +11,14 @@
 
   <description>
     <p>
-      LGL System Loadout is a graphical wizard that gets a fresh Fedora install ready in minutes.
-      Choose exactly what you want from a curated list of packages across gaming, multimedia,
-      content creation, development tools, browsers, communication apps, GPU drivers,
-      virtualisation, KDE theming, and the CachyOS kernel.
+      LGL System Loadout gets a fresh Fedora install ready for gaming, content creation,
+      and development - without the terminal. Pick exactly what you want from a curated
+      list, click Install, and you are done.
     </p>
-    <p>Features:</p>
-    <ul>
-      <li>No defaults — nothing is pre-selected</li>
-      <li>Every item shows its current installed state before you commit</li>
-      <li>All checks run concurrently so pages load instantly</li>
-      <li>Installs only — nothing is removed without your knowledge</li>
-      <li>Single polkit password prompt via pkexec</li>
-    </ul>
-    <p>What you can install:</p>
-    <ul>
-      <li>Gaming — Steam, Lutris, Wine, Heroic, MangoHud, vkBasalt, ProtonUp-Qt, and more</li>
-      <li>Content Creation — OBS Studio, Kdenlive, GIMP, Inkscape, Audacity, Blender</li>
-      <li>GPU Drivers — AMD Mesa, Vulkan, VA-API</li>
-      <li>Browsers — Firefox, Chromium, Chrome, Brave, Vivaldi, LibreWolf</li>
-      <li>Communication — Thunderbird, Discord, Vesktop, Spotify</li>
-      <li>Virtualisation — virt-manager, libvirt</li>
-      <li>KDE Theming — KZones, Panel Colorizer</li>
-      <li>CachyOS Kernel — performance-optimised kernel with BORE scheduler</li>
-      <li>System Tools — btop, fastfetch, distrobox, timeshift, and more</li>
-      <li>Multimedia — ffmpeg, GStreamer plugins, VLC</li>
-    </ul>
+    <p>
+      Nothing is selected by default. Every item shows whether it is already installed
+      before you commit. One password prompt covers the entire installation.
+    </p>
   </description>
 
   <launchable type="desktop-id">com.linuxgamerlife.lgl-system-loadout.desktop</launchable>
@@ -50,7 +32,6 @@
 
   <categories>
     <category>Utility</category>
-    <category>System</category>
   </categories>
 
   <keywords>

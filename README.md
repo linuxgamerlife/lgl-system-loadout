@@ -2,13 +2,11 @@
 
 # LGL System Loadout
 
-**A curated Fedora setup wizard for gaming, content creation, and development.**  
-Pick your loadout. Hit install. Your system is ready.
+**Get a fresh Fedora install ready for gaming, content creation, and development — without the terminal.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Fedora](https://img.shields.io/badge/Fedora-43%2B-blue?logo=fedora&logoColor=white)](https://fedoraproject.org)
 [![Qt](https://img.shields.io/badge/Qt-6-green?logo=qt&logoColor=white)](https://www.qt.io)
-[![KDE Plasma](https://img.shields.io/badge/KDE-Plasma-1d99f3?logo=kde&logoColor=white)](https://kde.org)
 
 </div>
 
@@ -16,100 +14,69 @@ Pick your loadout. Hit install. Your system is ready.
 
 ## Overview
 
-LGL System Loadout is a graphical wizard that gets a fresh Fedora install ready in minutes. Choose exactly what you want from a curated list of packages across gaming, multimedia, content creation, development tools, browsers, communication apps, GPU drivers, virtualisation, KDE theming, and the CachyOS kernel.
+LGL System Loadout is a graphical setup wizard for Fedora. Pick exactly what you want from a curated list of software across gaming, multimedia, content creation, development, browsers, communication, GPU drivers, virtualisation, and the CachyOS kernel. One password prompt covers the entire installation.
 
-- No terminal needed if you grab the RPM version in releases
-- No defaults - nothing is pre-selected
+- Nothing is selected by default — every choice is yours
 - Every item shows its current installed state before you commit
-- All checks run concurrently so pages load instantly
-- Installs only - nothing is removed without your knowledge
+- Installs only — nothing is removed without your knowledge
 
 ---
 
-## Requirements
+## Install
 
-| | |
-|---|---|
-| **OS** | Fedora 43+ (developed and tested on Fedora 43) |
-| **Desktop** | KDE Plasma (some items are KDE-specific) |
-| **Connection** | Internet required |
-
-> The wizard includes a guided system update step on page 2. It is recommended to let it run before making any selections.
-
----
-
-## Installation
-
-### No terminal
-Download the RPM in releases and run it. It will open in Discover, click install at the top and enter your password. Once installed, there will be a new icon in Utilities
-
-### Recommended — COPR (Fedora 43)
+### Recommended — COPR
 
 ```bash
 sudo dnf copr enable linuxgamerlife/lgl-system-loadout
 sudo dnf install lgl-system-loadout
 ```
 
-After installation the app appears in your KDE launcher under **Utilities** as **LGL System Loadout**. Launch it and a single password prompt will appear — the wizard then runs fully elevated.
+Launch **LGL System Loadout** from your application menu.
 
-## Building from source
+### No Terminal — RPM from Releases
 
-### 1. Install build dependencies
+Download the latest `.rpm` from [GitHub Releases](https://github.com/linuxgamerlife/lgl-system-loadout/releases) and double-click to install via Discover.
+
+> After installing from Discover, close it and launch the app from your application menu rather than from the Discover install screen.
+
+---
+
+## Build from Source
 
 ```bash
+# Install build dependencies
 sudo dnf install cmake gcc-c++ qt6-qtbase-devel
-```
 
-### 2. Extract and enter the project folder
-
-```bash
-mkdir -p ~/projects
-mv ~/Downloads/lgl-system-loadout.zip ~/projects/
-cd ~/projects
-unzip lgl-system-loadout.zip
-cd lgl-gui-installer
-```
-
-### 3. Build
-
-```bash
+# Clone and build
+git clone https://github.com/linuxgamerlife/lgl-system-loadout.git
+cd lgl-system-loadout
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 ```
 
-### 4. Run app
-
-```bash
-chmod +x lgl-system-loadout
-sudo ./lgl-system-loadout
-```
-
-> **Note — Qt version compatibility:** Always build the binary on the same machine you intend to run it on, or on a machine with the same Qt6 version. A binary built against Qt 6.10 will not run on a system with an older Qt6 installed (`version 'Qt_6.10' not found`). If you see this error, either build from source on the target machine or update Qt6 first:
-> ```bash
-> sudo dnf upgrade qt6-qtbase
-> ```
+> Always build on the same machine you intend to run on. If you see `version 'Qt_6.x' not found`, run `sudo dnf upgrade qt6-qtbase` first.
 
 ---
 
-## What's included
+## What's Included
 
 | Category | Highlights |
 |---|---|
-| **System Update** | Guided `dnf upgrade --refresh` with kernel detection and reboot prompt |
+| **System Update** | Optional `dnf upgrade --refresh` before installing |
 | **Repositories** | RPM Fusion Free & NonFree |
-| **System Tools** | btop, fastfetch, distrobox, timeshift, xrdp, and more |
-| **System Tweaks** | Disable NetworkManager-wait-online · Clean DNF cache after install |
+| **System Tools** | btop, fastfetch, distrobox, timeshift, xrdp |
+| **System Tweaks** | Disable NetworkManager-wait-online · Clean DNF cache |
 | **Python** | pip, pipx, yt-dlp, tldr |
 | **Multimedia** | ffmpeg, GStreamer plugins, VLC |
 | **Content Creation** | OBS Studio, Kdenlive, GIMP, Inkscape, Audacity, Blender |
-| **GPU Drivers** | AMD (Mesa, Vulkan, VA-API, firmware) · NVIDIA (guided) |
+| **GPU Drivers** | AMD (Mesa, Vulkan, VA-API) |
 | **Gaming** | Steam, Lutris, Wine, Protontricks, MangoHud, vkBasalt, GOverlay, Heroic, ProtonUp-Qt, ProtonPlus, Flatseal |
-| **Virtualisation** | virt-manager, libvirt, virt-install, virt-viewer |
+| **Virtualisation** | virt-manager, libvirt |
 | **Browsers** | Firefox, Chromium, Chrome, Brave, Vivaldi, LibreWolf |
 | **Communication** | Thunderbird, Discord, Vesktop, Spotify |
-| **KDE Theming** | KZones, Panel Colorizer |
-| **CachyOS Kernel** | kernel-cachyos, scx-scheds, scx-manager, scx-tools |
+| **CachyOS Kernel** | kernel-cachyos, kernel-cachyos-devel-matched |
+| **SCX Scheduler Tools** | scx-scheds, scx-manager, scx-tools |
 
 ---
 
@@ -120,5 +87,5 @@ MIT — see [LICENSE](LICENSE) for details.
 ---
 
 <div align="center">
-Made for <a href="https://fedoraproject.org">Fedora</a> · by <a href="https://www.youtube.com/@linuxgamerlife">LinuxGamerLife</a> and ClaudeAI
+Made for <a href="https://fedoraproject.org">Fedora</a> · by <a href="https://www.youtube.com/@linuxgamerlife">LinuxGamerLife</a>
 </div>

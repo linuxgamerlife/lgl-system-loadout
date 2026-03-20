@@ -13,32 +13,18 @@
 #include <QFrame>
 #include <QFont>
 #include <QScrollBar>
+#include <QTextCursor>
 
 InstallPage::InstallPage(MainWizard *wizard) : QWizardPage(wizard), m_wiz(wizard)
 {
     setTitle("Installing");
-    setSubTitle("Installation is in progress. Please do not close this window.");
+    setSubTitle("Installation is in progress. Please do not close this window. Some packages may take a while — please be patient.");
 
     auto *layout = new QVBoxLayout(this);
     layout->setSpacing(6);
 
     m_statusLabel = new QLabel("Preparing...");
     layout->addWidget(m_statusLabel);
-
-    // Patience message
-    auto *patienceFrame = new QFrame;
-    patienceFrame->setFrameShape(QFrame::StyledPanel);
-    patienceFrame->setStyleSheet("QFrame { background: palette(midlight); border-radius: 4px; padding: 2px; }");
-    auto *patienceLayout = new QHBoxLayout(patienceFrame);
-    patienceLayout->setContentsMargins(8, 4, 8, 4);
-    auto *patienceLabel = new QLabel(
-        "Some packages may take a while to download and install. "
-        "If it appears to have frozen, it probably has not. "
-        "Please be patient -- or go make a cup of tea!"
-    );
-    patienceLabel->setWordWrap(true);
-    patienceLayout->addWidget(patienceLabel);
-    layout->addWidget(patienceFrame);
 
     m_progress = new QProgressBar;
     m_progress->setRange(0, 100);
@@ -134,6 +120,17 @@ void InstallPage::initializePage()
     m_doneSteps = 0;
     m_currentStepId.clear();
 
+    // Launch the privileged helper. This triggers the polkit password prompt.
+    // The helper writes its socket path to stdout; we store it for the worker.
+    const QString socketPath = m_wiz->launchHelper();
+    if (socketPath.isEmpty()) {
+        m_statusLabel->setText("Error: failed to launch privileged helper. "
+                               "Check that pkexec and the helper binary are installed.");
+        m_done = true;
+        emit completeChanged();
+        return;
+    }
+
     QList<InstallStep> steps = m_wiz->buildSteps();
     m_totalSteps = steps.size();
     m_progress->setRange(0, m_totalSteps);
@@ -154,6 +151,7 @@ void InstallPage::initializePage()
     auto *thread = new QThread;
     auto *worker = new InstallWorker;
     worker->setSteps(steps);
+    worker->setSocketPath(socketPath);
     worker->moveToThread(thread);
 
     // Worker lifetime: deleted on the thread it lives on, after it finishes.
@@ -224,7 +222,17 @@ void InstallPage::onStepSkipped(const QString &id, const QString &description)
 
 void InstallPage::onLogLine(const QString &line)
 {
-    m_fullLog->appendPlainText(line);
+    // Flatpak and some other tools use \r to update progress in place.
+    // In QPlainTextEdit we replicate this by replacing the last block.
+    if (line.contains('\r')) {
+        const QString last = line.section('\r', -1);  // take text after final \r
+        QTextCursor c = m_fullLog->textCursor();
+        c.movePosition(QTextCursor::End);
+        c.movePosition(QTextCursor::StartOfBlock, QTextCursor::KeepAnchor);
+        c.insertText(last);
+    } else {
+        m_fullLog->appendPlainText(line);
+    }
     m_fullLog->verticalScrollBar()->setValue(m_fullLog->verticalScrollBar()->maximum());
 
     if (!m_currentStepId.isEmpty() && m_stepLogs.contains(m_currentStepId))

@@ -6,6 +6,7 @@
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QClipboard>
+#include <QMimeData>
 #include <QApplication>
 #include <QFrame>
 #include <QFont>
@@ -51,7 +52,7 @@ DonePage::DonePage(MainWizard *wizard) : QWizardPage(wizard), m_wiz(wizard)
 
     auto *rebootBtn = new QPushButton("Reboot Now");
     connect(rebootBtn, &QPushButton::clicked, []() {
-        QProcess::startDetached("systemctl", {"reboot"});
+        QProcess::startDetached("pkexec", {"/usr/bin/systemctl", "reboot"});
     });
     btnLayout->addStretch();
     btnLayout->addWidget(rebootBtn);
@@ -89,14 +90,26 @@ void DonePage::initializePage()
     }
 }
 
+static void copyToClipboard(const QString &text)
+{
+    // Use QMimeData for reliable Wayland clipboard support.
+    auto *md = new QMimeData;
+    md->setText(text);
+    QApplication::clipboard()->setMimeData(md, QClipboard::Clipboard);
+    // Also set Selection mode for middle-click paste on X11.
+    if (QApplication::clipboard()->supportsSelection()) {
+        auto *mdSel = new QMimeData;
+        mdSel->setText(text);
+        QApplication::clipboard()->setMimeData(mdSel, QClipboard::Selection);
+    }
+}
+
 void DonePage::copyErrorsToClipboard()
 {
-    const QString text = m_wiz->getOpt("install/failedSteps", QString()).toString();
-    QApplication::clipboard()->setText(text);
+    copyToClipboard(m_wiz->getOpt("install/failedSteps", QString()).toString());
 }
 
 void DonePage::copyFullLogToClipboard()
 {
-    const QString text = m_wiz->getOpt("install/fullLog", QString()).toString();
-    QApplication::clipboard()->setText(text);
+    copyToClipboard(m_wiz->getOpt("install/fullLog", QString()).toString());
 }

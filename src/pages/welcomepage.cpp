@@ -4,7 +4,7 @@
 #include <QLabel>
 #include <QFrame>
 #include <QApplication>
-#include <unistd.h>
+#include <QProcess>
 
 WelcomePage::WelcomePage(MainWizard *wizard) : QWizardPage(wizard)
 {
@@ -15,15 +15,28 @@ WelcomePage::WelcomePage(MainWizard *wizard) : QWizardPage(wizard)
     auto *layout = new QVBoxLayout(this);
     layout->setSpacing(12);
 
-    // Root warning
-    if (geteuid() != 0) {
-        auto *warnFrame = new QFrame;
+    // Preflight check — verify polkit has loaded the action for the helper.
+    // File existence is not sufficient: if launched immediately from Discover
+    // post-install, the policy file exists but polkit hasn't loaded it yet.
+    // pkaction --action-id returns 0 only if polkit knows the action.
+    QProcess pkactionProc;
+    pkactionProc.start("pkaction", {"--action-id",
+        "com.linuxgamerlife.lgl-system-loadout.run-helper"});
+    pkactionProc.waitForFinished(3000);
+    const bool pkactionOk = (pkactionProc.exitCode() == 0);
+
+    if (!pkactionOk) {
+        auto *warnFrame  = new QFrame;
         warnFrame->setFrameShape(QFrame::StyledPanel);
-        warnFrame->setStyleSheet("QFrame { background: palette(highlight); border-radius: 6px; padding: 4px; }");
+        warnFrame->setStyleSheet("background:#5c1a1a; border:1px solid #cc0000; border-radius:4px;");
         auto *wl = new QVBoxLayout(warnFrame);
         auto *warnLabel = new QLabel(
-            "<b>Warning: This application must be run as root.</b><br>"
-            "Please restart with: <tt>pkexec lgl-system-loadout</tt>"
+            "<b>⚠ Installation incomplete</b><br><br>"
+            "The privileged helper binary or polkit policy file was not found. "
+            "This usually happens when the app is launched directly from Discover "
+            "immediately after installation, before the system has finished setting up.<br><br>"
+            "<b>Please close this window and relaunch LGL System Loadout from your "
+            "application menu.</b>"
         );
         warnLabel->setWordWrap(true);
         wl->addWidget(warnLabel);
@@ -86,5 +99,5 @@ WelcomePage::WelcomePage(MainWizard *wizard) : QWizardPage(wizard)
 
 bool WelcomePage::isComplete() const
 {
-    return geteuid() == 0;
+    return true;
 }

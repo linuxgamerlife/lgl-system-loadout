@@ -1,22 +1,39 @@
 #pragma once
 #include <QObject>
+#include <QLocalSocket>
+#include <QSet>
 #include <QStringList>
 #include <atomic>
+#include <functional>
 
+// InstallStep — describes a single install operation.
+//
+// command[0] is the program; rest are arguments.
+// An empty command is a no-op marker (counts as success immediately).
+//
+// allowedExitCodes: non-zero exit codes to treat as success.
+//   Declared per-step so exceptions are visible at the call site:
+//     kpackagetool6 exit 4  — "already installed"
+//     dnf exit 7            — RPM scriptlet failure (package still installed)
+//     scx-* exit 1          — benign exit on some kernel configs
+//
+// verifyPath / expectedHash: reserved for future use.
 struct InstallStep {
     QString     id;
     QString     description;
-    QStringList command;   // command[0]=program, rest=args; empty=no-op marker
+    QStringList command;              // command[0]=program, rest=args
     bool        optional             = false;
-    // If non-empty, run this check first. If exit 0, step is skipped as already done.
-    QStringList alreadyInstalledCheck = {};
+    QStringList alreadyInstalledCheck = {};  // if exit 0, step is skipped
+    QSet<int>   allowedExitCodes      = {};  // non-zero exits treated as success
 };
 
 class InstallWorker : public QObject {
     Q_OBJECT
 public:
     explicit InstallWorker(QObject *parent = nullptr);
+
     void setSteps(const QList<InstallStep> &steps);
+    void setSocketPath(const QString &path);
 
 public slots:
     void run();
@@ -30,10 +47,16 @@ signals:
     void allDone(int errorCount);
 
 private:
-    bool runCheck(const QStringList &cmd);
-    QList<InstallStep> m_steps;
-    // std::atomic<bool> is required: cancel() is called from the main thread
-    // while run() reads m_cancelled on the worker thread. A plain bool here
-    // is a data race that TSan will flag.
-    std::atomic<bool> m_cancelled{false};
+    bool runCheck(QLocalSocket &sock, const QStringList &cmd);
+    int  sendRequest(QLocalSocket &sock, const QJsonObject &msg,
+                     std::function<void(const QString &)> outputCallback);
+
+    QList<InstallStep>  m_steps;
+    QString             m_socketPath;
+
+    // Written from main thread (cancel()), read from worker thread (run()).
+    // std::atomic<bool> prevents a data race.
+    std::atomic<bool>   m_cancelled{false};
+
+    int                 m_requestCounter = 0;
 };

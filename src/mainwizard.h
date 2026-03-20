@@ -2,8 +2,9 @@
 #include <QWizard>
 #include <QMap>
 #include <QVariant>
-#include <QTemporaryDir>
+#include <QProcess>
 #include "installworker.h"
+#include <functional>
 
 enum PageId {
     PAGE_WELCOME = 0,
@@ -18,8 +19,8 @@ enum PageId {
     PAGE_VIRT,
     PAGE_BROWSERS,
     PAGE_COMMS,
-    PAGE_THEMING,
     PAGE_CACHYOS,
+    PAGE_SCX,
     PAGE_REVIEW,
     PAGE_INSTALL,
     PAGE_DONE
@@ -38,18 +39,33 @@ public:
 
     QList<InstallStep> buildSteps() const;
 
-    // Returns estimated disk space needed in MB based on current selections
+    // Launch the privileged helper via pkexec and return the socket path.
+    // Returns an empty string on failure. Should be called once, just before
+    // the install worker is started. The helper process is owned by m_helperProcess
+    // and will be waited on / killed during wizard destruction.
+    QString launchHelper();
+
+    // Send a single command to the helper and stream output via outputLine callback.
+    // Launches the helper first if not already running.
+    // Returns the exit code, or -1 on failure.
+    // Must be called from the main thread — uses a local event loop internally.
+    int runHelperCommand(const QStringList &command,
+                         std::function<void(const QString &)> outputLine);
+
+    // Returns estimated disk space needed in MB based on current selections.
     int estimateDiskMB() const;
 
-    // Returns available disk space on / in MB (-1 if unknown)
+    // Returns available disk space on / in MB (-1 if unknown).
     static int availableDiskMB();
 
 private:
     void detectSystem();
+
     QString                 m_targetUser;
     QString                 m_fedoraVersion;
     QMap<QString,QVariant>  m_opts;
-    // Owned temporary directory for theming asset downloads.
-    // Lives as long as the wizard — auto-cleaned on destruction.
-    QTemporaryDir           m_tempDir;
+
+    // Helper process — owned by the wizard, lives for the install session.
+    // Null until launchHelper() is called.
+    QProcess               *m_helperProcess = nullptr;
 };

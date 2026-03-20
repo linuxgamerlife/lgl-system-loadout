@@ -79,7 +79,7 @@ void GamingPage::initializePage()
         {"vkBasalt",     "vkBasalt",     "Vulkan post-processing layer for games - adds CAS sharpening, FXAA, SMAA, and LUT support."},
     };
     const QList<Item> flatpakItems = {
-        {"heroic",    "Heroic Games Launcher  (Flatpak)", "Open-source launcher for Epic Games Store and GOG.",             "com.heroicgameslauncher.hgl"},
+        {"heroic",    "Heroic Games Launcher", "Open-source launcher for Epic Games Store and GOG.",             "heroic-games-launcher-bin"},
         {"protonup",  "ProtonUp-Qt  (Flatpak)",           "GUI for managing Proton-GE and other compatibility tool versions.", "net.davidotek.pupgui2"},
         {"protonplus","ProtonPlus  (Flatpak)",            "Alternative tool for managing Proton versions.",                   "com.vysp3r.ProtonPlus"},
         {"flatseal",  "Flatseal  (Flatpak)",              "Graphical tool for managing Flatpak application permissions.",     "com.github.tchx84.Flatseal"},
@@ -132,7 +132,7 @@ void GamingPage::initializePage()
     QList<QPair<QString, std::function<bool()>>> checks;
     for (const auto &it : dnfItems)
         checks.append({it.key, [key=it.key]{ return isDnfInstalled(key); }});
-    checks.append({"heroic",     []{ return isFlatpakInstalled("com.heroicgameslauncher.hgl"); }});
+    checks.append({"heroic",     []{ return isDnfInstalled("heroic-games-launcher-bin"); }});
     checks.append({"protonup",   []{ return isFlatpakInstalled("net.davidotek.pupgui2"); }});
     checks.append({"protonplus", []{ return isFlatpakInstalled("com.vysp3r.ProtonPlus"); }});
     checks.append({"flatseal",   []{ return isFlatpakInstalled("com.github.tchx84.Flatseal"); }});

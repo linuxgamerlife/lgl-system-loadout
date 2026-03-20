@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        1.0.4
+Version:        1.1.0
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -14,27 +14,22 @@ BuildRequires:  unzip
 
 # Runtime dependencies
 # qt6-qtbase is the only true library dependency — all other tools (dnf, curl,
-# flatpak) are invoked as subprocesses and are already present on any Fedora 43
-# system. Declaring them here causes unnecessary resolver conflicts (e.g. dnf vs dnf5).
+# flatpak) are invoked via the privileged helper and are already present on any
+# Fedora 43 system. Declaring them here causes unnecessary resolver conflicts.
 Requires:       qt6-qtbase
 Requires:       polkit
 
 %description
-LGL System Loadout is a graphical wizard that gets a fresh Fedora install
-ready in minutes. Choose exactly what to install from a curated list spanning
-gaming, multimedia, content creation, development tools, browsers,
-communication apps, GPU drivers, virtualisation, KDE theming, and the
-CachyOS kernel.
+LGL System Loadout gets a fresh Fedora install ready for gaming, content
+creation, and development - without the terminal. Pick exactly what you want
+from a curated list, click Install, and you are done.
 
-Features:
-  - No defaults — nothing is pre-selected
-  - Every item shows its current installed state before you commit
-  - All checks run concurrently so pages load instantly
-  - Installs only — nothing is removed without your knowledge
-  - Single polkit password prompt via pkexec
+Nothing is selected by default. Every item shows whether it is already
+installed before you commit. One password prompt covers the entire
+installation.
 
 %prep
-%setup -q -n lgl-system-loadout-%{version}
+%setup -q -n lgl-system-loadout
 
 %build
 mkdir -p build
@@ -45,17 +40,21 @@ cmake .. \
 %make_build
 
 %install
-# Binary
+# Main GUI binary — runs as normal user
 install -Dm755 build/lgl-system-loadout \
     %{buildroot}%{_bindir}/lgl-system-loadout
+
+# Privileged helper binary — launched via pkexec, never run directly
+install -Dm755 build/lgl-system-loadout-helper \
+    %{buildroot}%{_libexecdir}/lgl-system-loadout/lgl-system-loadout-helper
 
 # Desktop entry
 install -Dm644 packaging/com.linuxgamerlife.lgl-system-loadout.desktop \
     %{buildroot}%{_datadir}/applications/com.linuxgamerlife.lgl-system-loadout.desktop
 
-# Polkit policy
+# Polkit policy — references the helper binary path
 install -Dm644 packaging/lgl-system-loadout.policy \
-    %{buildroot}%{_datadir}/polkit-1/actions/com.linuxgamerlife.lgl-system-loadout.policy
+    %{buildroot}%{_datadir}/polkit-1/actions/com.linuxgamerlife.lgl-system-loadout.run-helper.policy
 
 # Icons — hicolor theme sizes
 install -Dm644 packaging/lgl-system-loadout-256.png \
@@ -64,17 +63,18 @@ install -Dm644 packaging/lgl-system-loadout-128.png \
     %{buildroot}%{_datadir}/icons/hicolor/128x128/apps/lgl-system-loadout.png
 install -Dm644 packaging/lgl-system-loadout-64.png \
     %{buildroot}%{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout.png
+install -Dm644 packaging/lgl-system-loadout-64.png \
+    %{buildroot}%{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout-64.png
 install -Dm644 packaging/lgl-system-loadout-48.png \
     %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/lgl-system-loadout.png
 
-# Pixmaps fallback (some older launchers use this)
+# Pixmaps fallback
 install -Dm644 packaging/lgl-system-loadout-256.png \
     %{buildroot}%{_datadir}/pixmaps/lgl-system-loadout.png
 
-# AppStream metainfo (Discover uses this for version display and app info)
+# AppStream metainfo
 install -Dm644 packaging/com.linuxgamerlife.lgl-system-loadout.metainfo.xml \
     %{buildroot}%{_datadir}/metainfo/com.linuxgamerlife.lgl-system-loadout.metainfo.xml
-
 
 %post
 if [ -x /usr/bin/gtk-update-icon-cache ]; then
@@ -85,6 +85,14 @@ if [ -x /usr/bin/update-desktop-database ]; then
 fi
 if [ -x /usr/bin/appstreamcli ]; then
     appstreamcli refresh --force &>/dev/null || :
+fi
+if [ -x /usr/bin/kbuildsycoca6 ]; then
+    kbuildsycoca6 &>/dev/null || :
+fi
+# Reload polkit so the new policy is picked up immediately without requiring
+# a reboot or manual polkit restart.
+if [ -x /usr/bin/systemctl ]; then
+    systemctl reload polkit &>/dev/null || systemctl restart polkit &>/dev/null || :
 fi
 
 %postun
@@ -101,16 +109,32 @@ fi
 %files
 %license LICENSE
 %{_bindir}/lgl-system-loadout
+%{_libexecdir}/lgl-system-loadout/lgl-system-loadout-helper
 %{_datadir}/applications/com.linuxgamerlife.lgl-system-loadout.desktop
 %{_datadir}/metainfo/com.linuxgamerlife.lgl-system-loadout.metainfo.xml
-%{_datadir}/polkit-1/actions/com.linuxgamerlife.lgl-system-loadout.policy
+%{_datadir}/polkit-1/actions/com.linuxgamerlife.lgl-system-loadout.run-helper.policy
 %{_datadir}/icons/hicolor/256x256/apps/lgl-system-loadout.png
 %{_datadir}/icons/hicolor/128x128/apps/lgl-system-loadout.png
 %{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout.png
+%{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout-64.png
 %{_datadir}/icons/hicolor/48x48/apps/lgl-system-loadout.png
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Tue Mar 17 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.1.0-1
+- Privilege separation: GUI now runs as normal user at all times
+- New privileged helper binary (lgl-system-loadout-helper) launched via pkexec
+- Helper uses Unix socket IPC with strict operation allow-list
+- No shell invocation: all commands executed via direct execvp-style QProcess
+- polkit prompt deferred until Install is clicked (or Update Now on update page)
+- SCX Scheduler Tools split into dedicated page after CachyOS Kernel page
+- Heroic Games Launcher switched from Flatpak to atim/heroic-games-launcher COPR
+- kernel-cachyos-addons COPR now enabled when any SCX package is selected
+- Browser repo setup (Chrome, Brave, Vivaldi) no longer uses bash heredocs
+- allowedExitCodes formalised per-step (dnf exit 7, scx exit 1)
+- Target user validation strengthened
+- Welcome page no longer requires root to proceed
+
 * Tue Mar 10 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.0.4-1
 - Metainfo file renamed to reverse-DNS format to match component ID and desktop file
 
@@ -123,14 +147,11 @@ fi
 - Discover/GNOME Software can now find and display the application
 
 * Tue Mar 10 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.0.1-1
-- Panel Colorizer download fixed: QTemporaryDir path contained spaces breaking bash variable expansion
-- Panel Colorizer log output no longer shows garbled binary text from file(1) command
-- KZones download path fixed: same space-in-path issue as Panel Colorizer
-- Kernel warning box no longer overlaps log output on System Update page
-- Reboot confirmation dialog clarified: explains unsaved work means other open applications
+- Panel Colorizer and KZones download path fixes (removed in 1.1.0)
+- Kernel warning box layout fix
+- Reboot confirmation dialog clarified
 - Secure Boot warning added to CachyOS Kernel page
-- Qt version compatibility note added to README
-- Thread lifecycle, atomic cancel flag, QProcess timeout hardening
+- Thread lifecycle and atomic cancel flag hardening
 - PKEXEC_UID and target user input validation
 
 * Mon Mar 09 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.0.0-1
