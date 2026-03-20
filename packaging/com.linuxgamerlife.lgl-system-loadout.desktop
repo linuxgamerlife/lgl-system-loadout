@@ -2,10 +2,10 @@
 Categories=Utility;System;
 Comment[en_GB]=Set up your Fedora system for gaming, content creation, and development
 Comment=Set up your Fedora system for gaming, content creation, and development
-Exec=pkexec /usr/bin/lgl-system-loadout
+Exec=/usr/bin/lgl-system-loadout
 GenericName[en_GB]=Fedora Setup Wizard
 GenericName=Fedora Setup Wizard
-Icon=/home/lgl/projects/fedora-installer/Version 1.0.4/lgl-system-loadout-1.0.4/packaging/lgl-system-loadout-64.png
+Icon=lgl-system-loadout
 Keywords=fedora;setup;gaming;install;packages;steam;drivers;
 MimeType=
 Name[en_GB]=LGL System Loadout
