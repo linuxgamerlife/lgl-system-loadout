@@ -18,6 +18,9 @@
 #include <QSignalSpy>
 #include <QThread>
 #include <QElapsedTimer>
+#include <QTemporaryDir>
+#include <QFile>
+#include <QDir>
 #include "../src/installworker.h"
 
 // ---------------------------------------------------------------------------
@@ -40,6 +43,42 @@ static InstallStep noopStep(const QString &id = "noop")
     // Empty command — treated as a no-op marker.
     return InstallStep{id, "No-op marker", {}};
 }
+
+static QString writeScript(const QDir &dir, const QString &name, const QString &body)
+{
+    const QString path = dir.filePath(name);
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        qFatal("Failed to create test helper script %s: %s",
+               qPrintable(path), qPrintable(file.errorString()));
+    file.write("#!/bin/sh\n");
+    file.write(body.toUtf8());
+    file.write("\n");
+    file.close();
+    QFile::setPermissions(path,
+        QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner |
+        QFileDevice::ReadGroup | QFileDevice::ExeGroup |
+        QFileDevice::ReadOther | QFileDevice::ExeOther);
+    return path;
+}
+
+class ScopedPathEnv
+{
+public:
+    explicit ScopedPathEnv(const QString &path)
+        : m_oldPath(qgetenv("PATH"))
+    {
+        qputenv("PATH", path.toUtf8());
+    }
+
+    ~ScopedPathEnv()
+    {
+        qputenv("PATH", m_oldPath);
+    }
+
+private:
+    QByteArray m_oldPath;
+};
 
 // Run a worker synchronously on a real QThread, return when allDone fires.
 // Returns the errorCount emitted by allDone.
@@ -215,36 +254,61 @@ private slots:
     // Special exit codes
     // ------------------------------------------------------------------
 
-    // REG: kpackagetool6 exit 4 treated as success (already installed).
-    void test_kpackagetool6Exit4TreatedAsSuccess()
+    void test_sudoExit4OnlyTreatedAsSuccessForKPackageTool()
     {
-        // Simulate kpackagetool6 exit 4 by using bash to exit with that code.
-        // The worker checks: !ok && code == 4 && (program == "kpackagetool6" || program == "sudo")
-        // We can't rename bash, but we can test through the "sudo" path,
-        // which the worker also checks. However that path is for 'sudo kpackagetool6'.
-        // We test via the description/logic path using a step tagged correctly:
-        InstallStep s{"kpkg_step", "Install KWin script",
-                      {"bash", "-c", "exit 4"}};
-        // bash exit 4 is NOT in the special-case list for bash — only exit 7 for chrome.
-        // This means bash exit 4 counts as a failure. Test that it does.
-        const auto r = runWorker({s});
-        QCOMPARE(r.errorCount, 1);
-        QCOMPARE(r.stepResults.value("kpkg_step").second, 4);
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        writeScript(QDir(dir.path()), "sudo", "exit 4");
+        ScopedPathEnv env(dir.path() + ":" + QString::fromLocal8Bit(qgetenv("PATH")));
+
+        InstallStep nonKpkg{"sudo_fail", "Unrelated sudo command", {"sudo", "-u", "alice", "true"}};
+        const auto failRun = runWorker({nonKpkg});
+        QCOMPARE(failRun.errorCount, 1);
+        QVERIFY(!failRun.stepResults.value("sudo_fail").first);
+        QCOMPARE(failRun.stepResults.value("sudo_fail").second, 4);
+
+        InstallStep kpkg{"sudo_ok", "Install KWin script",
+                         {"sudo", "-u", "alice", "kpackagetool6", "--type", "KWin/Script", "--install", "/tmp/fake"}};
+        const auto okRun = runWorker({kpkg});
+        QCOMPARE(okRun.errorCount, 0);
+        QVERIFY(okRun.stepResults.value("sudo_ok").first);
+        QCOMPARE(okRun.stepResults.value("sudo_ok").second, 4);
     }
 
-    // REG: dnf exit 7 treated as success-with-warning (RPM scriptlet failure).
-    void test_dnfExit7TreatedAsSuccess()
+    void test_dnfExit7RequiresPackageVerification()
     {
-        // We can't run real dnf, but we verify the logic by checking that
-        // when step.command[0] == "dnf" and exit == 7, the worker emits success.
-        // Use a shell wrapper to emit exit 7 from a program named "dnf".
-        // In CI "dnf" may or may not exist. Build a synthetic step:
-        // The safest approach is to trust the installworker.cpp code path and
-        // verify the log line appears when we can simulate it.
-        // Since we can't rename a binary, we document the coverage gap here.
-        // The special-case logic is covered by code review; a full integration
-        // test would require a mock QProcess or dependency injection.
-        QSKIP("dnf exit-7 path requires mock QProcess or real dnf binary — integration test only.");
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+
+        writeScript(QDir(dir.path()), "dnf", "exit 7");
+        writeScript(QDir(dir.path()), "rpm",
+            "last=\"\"\n"
+            "for last; do :; done\n"
+            "case \"$last\" in\n"
+            "  goodpkg|rpmfusion-free-release) exit 0 ;;\n"
+            "  *) exit 1 ;;\n"
+            "esac");
+        ScopedPathEnv env(dir.path() + ":" + QString::fromLocal8Bit(qgetenv("PATH")));
+
+        InstallStep verified{"dnf_ok", "Install package", {"dnf", "-y", "install", "goodpkg"}};
+        const auto okRun = runWorker({verified});
+        QCOMPARE(okRun.errorCount, 0);
+        QVERIFY(okRun.stepResults.value("dnf_ok").first);
+        QCOMPARE(okRun.stepResults.value("dnf_ok").second, 7);
+
+        InstallStep unverified{"dnf_fail", "Install missing package", {"dnf", "-y", "install", "badpkg"}};
+        const auto failRun = runWorker({unverified});
+        QCOMPARE(failRun.errorCount, 1);
+        QVERIFY(!failRun.stepResults.value("dnf_fail").first);
+        QCOMPARE(failRun.stepResults.value("dnf_fail").second, 7);
+
+        InstallStep urlVerified{"dnf_url", "Install repo RPM",
+            {"dnf", "-y", "install",
+             "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-43.noarch.rpm"}};
+        const auto urlRun = runWorker({urlVerified});
+        QCOMPARE(urlRun.errorCount, 0);
+        QVERIFY(urlRun.stepResults.value("dnf_url").first);
+        QCOMPARE(urlRun.stepResults.value("dnf_url").second, 7);
     }
 
     // ------------------------------------------------------------------

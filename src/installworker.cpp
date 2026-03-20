@@ -1,5 +1,8 @@
 #include "installworker.h"
+#include <QFileInfo>
+#include <QRegularExpression>
 #include <QProcess>
+#include <QUrl>
 
 InstallWorker::InstallWorker(QObject *parent) : QObject(parent) {}
 
@@ -13,6 +16,79 @@ bool InstallWorker::runCheck(const QStringList &cmd)
     p.start(cmd.first(), cmd.mid(1));
     if (!p.waitForFinished(5000)) { p.kill(); return false; }
     return p.exitStatus() == QProcess::NormalExit && p.exitCode() == 0;
+}
+
+static QStringList dnfInstallTargets(const QStringList &args)
+{
+    // `dnf` is often wrapped by `sudo`, so pull out only the package operands
+    // that come after the install/swap subcommand.
+    const int opIndex = args.indexOf("install");
+    if (opIndex >= 0) {
+        QStringList targets;
+        for (int i = opIndex + 1; i < args.size(); ++i) {
+            const QString &arg = args[i];
+            if (arg.startsWith('-'))
+                continue;
+            targets << arg;
+        }
+        return targets;
+    }
+
+    const int swapIndex = args.indexOf("swap");
+    if (swapIndex < 0) return {};
+
+    QStringList targets;
+    bool skippedRemoveSpec = false;
+    for (int i = swapIndex + 1; i < args.size(); ++i) {
+        const QString &arg = args[i];
+        if (arg.startsWith('-') || arg.contains("://"))
+            continue;
+        if (!skippedRemoveSpec) {
+            skippedRemoveSpec = true;
+            continue;
+        }
+        targets << arg;
+    }
+    return targets;
+}
+
+static QString rpmQueryNameForTarget(const QString &target)
+{
+    // Normalize a local path or download URL back into the package name that
+    // `rpm -q` understands.
+    QString fileName = target.contains("://")
+        ? QUrl(target).fileName()
+        : QFileInfo(target).fileName();
+
+    if (fileName.endsWith(".rpm"))
+        fileName.chop(4);
+
+    // RPM filenames are typically `name-version-release.arch`; when we only
+    // have the download URL, strip the trailing version-ish suffix so the
+    // installed package name can still be verified.
+    static const QRegularExpression kVersionSuffix(R"(^(.*?)-[0-9].*$)");
+    const auto match = kVersionSuffix.match(fileName);
+    if (match.hasMatch() && !match.captured(1).isEmpty())
+        return match.captured(1);
+
+    return fileName;
+}
+
+static bool packagesAreInstalled(const QStringList &pkgs)
+{
+    if (pkgs.isEmpty()) return false;
+
+    for (const QString &pkg : pkgs) {
+        const QString queryName = rpmQueryNameForTarget(pkg);
+        if (queryName.isEmpty())
+            return false;
+        QProcess p;
+        p.start("rpm", {"-q", "--quiet", queryName});
+        if (!p.waitForFinished(4000)) { p.kill(); return false; }
+        if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0)
+            return false;
+    }
+    return true;
 }
 
 void InstallWorker::run()
@@ -67,22 +143,28 @@ void InstallWorker::run()
         int  code = proc.exitCode();
         bool ok   = (proc.exitStatus() == QProcess::NormalExit && code == 0);
 
-        // Treat kpackagetool6 exit 4 (already exists) as success
-        if (!ok && code == 4 &&
-            (program == "kpackagetool6" || program == "sudo")) {
+        const bool isKPackageToolCommand =
+            (program == "kpackagetool6") ||
+            (program == "sudo" && args.contains("kpackagetool6"));
+
+        // Treat kpackagetool6 exit 4 (already exists) as success only when the
+        // command is actually installing a package via kpackagetool6.
+        if (!ok && code == 4 && isKPackageToolCommand) {
             emit logLine(QString("INFO: Already installed (exit 4), treating as success: %1")
                          .arg(step.description));
             ok = true;
         }
 
-        // Treat dnf exit 7 (RPM scriptlet failure) as success-with-warning.
-        // The package is installed; the scriptlet failing is usually non-fatal
-        // (e.g. Brave's post-install desktop integration script failing in some envs).
+        // Treat dnf exit 7 (RPM scriptlet failure) as success-with-warning only
+        // after verifying the intended packages are actually present.
         if (!ok && code == 7 && program == "dnf") {
-            emit logLine(QString("WARNING: RPM scriptlet failed (exit 7) but package should be installed: %1")
-                         .arg(step.description));
-            emit logLine("WARNING: This is usually non-fatal. Verify the app works after reboot.");
-            ok = true;
+            const QStringList targets = dnfInstallTargets(args);
+            if (packagesAreInstalled(targets)) {
+                emit logLine(QString("WARNING: RPM scriptlet failed (exit 7) but the target package(s) are installed: %1")
+                             .arg(step.description));
+                emit logLine("WARNING: This is usually non-fatal. Verify the app works after reboot.");
+                ok = true;
+            }
         }
 
         // Treat bash exit 7 as success-with-warning for Chrome repo setup steps
