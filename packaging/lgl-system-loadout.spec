@@ -5,7 +5,7 @@ Summary:        Guided setup wizard for Fedora — gaming, content creation, and
 
 License:        MIT
 URL:            https://github.com/linuxgamerlife/lgl-system-loadout
-Source0:        %{name}-%{version}.zip
+Source0:        https://github.com/linuxgamerlife/lgl-system-loadout/releases/download/v%{version}/%{name}-%{version}.zip
 BuildRequires:  cmake >= 3.16
 BuildRequires:  unzip
 BuildRequires:  gcc-c++
