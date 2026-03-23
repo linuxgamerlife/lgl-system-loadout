@@ -71,7 +71,7 @@ make -j$(nproc)
 | **Multimedia** | ffmpeg, GStreamer plugins, VLC |
 | **Content Creation** | OBS Studio, Kdenlive, GIMP, Inkscape, Audacity, Blender |
 | **GPU Drivers** | AMD (Mesa, Vulkan, VA-API) |
-| **Gaming** | Steam, Lutris, Wine, Protontricks, MangoHud, vkBasalt, GOverlay, Heroic, ProtonUp-Qt, ProtonPlus, Flatseal |
+| **Gaming** | Steam, Lutris, Wine, Protontricks, MangoHud, vkBasalt, GOverlay, Controller Support, Heroic, ProtonUp-Qt, ProtonPlus, Flatseal |
 | **Virtualisation** | virt-manager, libvirt |
 | **Browsers** | Firefox, Chromium, Chrome, Brave, Vivaldi, LibreWolf |
 | **Communication** | Thunderbird, Discord, Vesktop, Spotify |
