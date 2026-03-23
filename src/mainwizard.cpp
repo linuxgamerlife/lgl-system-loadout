@@ -309,6 +309,8 @@ QList<InstallStep> MainWizard::buildSteps() const
     }
 
     // ---- Gaming — RPM ----
+    if (get("gaming/kernel_modules_extra"))
+        S << dnfStep("gaming_kernel_modules_extra", "kernel-modules-extra");
     if (get("gaming/steam"))
         S << dnfStep("gaming_steam", "steam");
     if (get("gaming/lutris"))
@@ -592,6 +594,7 @@ int MainWizard::estimateDiskMB() const
         if (get("gpu/amd/linux_fw"))      mb += 500;
     }
 
+    if (get("gaming/kernel_modules_extra")) mb += 50;
     if (get("gaming/steam"))       mb += 400;
     if (get("gaming/lutris"))      mb += 50;
     if (get("gaming/heroic"))      mb += 200;

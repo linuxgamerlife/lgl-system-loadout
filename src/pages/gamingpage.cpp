@@ -70,6 +70,7 @@ void GamingPage::initializePage()
 
     struct Item { QString key, label, desc, appId = {}; };
     const QList<Item> dnfItems = {
+        {"kernel_modules_extra", "Kernel Modules Extra", "Provides kernel-level support for controllers and input devices. Recommended if your controller is not detected in games."},
         {"steam",        "Steam",        "Valve's game distribution platform. Includes Proton for running Windows games on Linux."},
         {"lutris",       "Lutris",       "Open gaming platform for managing games from GOG, itch.io, and more."},
         {"wine",         "Wine",         "Compatibility layer for running Windows applications and games on Linux. Installs both 64-bit and 32-bit packages for full application compatibility."},
@@ -86,14 +87,20 @@ void GamingPage::initializePage()
     };
 
     // Build sections with placeholder badges (shown while async checks run)
+    addSection("Controller Support");
+    for (const auto &it : QList<Item>{dnfItems[0]}) {
+        auto *cb = makeItemRow(inner, layout, it.label, false);
+        layout->addWidget(makeDescLabel(inner, it.desc)); layout->addSpacing(2);
+        m_boxes[it.key] = cb;
+    }
     addSection("Game Launchers");
-    for (const auto &it : QList<Item>{dnfItems[0], dnfItems[1], flatpakItems[0]}) {
+    for (const auto &it : QList<Item>{dnfItems[1], dnfItems[2], flatpakItems[0]}) {
         auto *cb = makeItemRow(inner, layout, it.label, false);
         layout->addWidget(makeDescLabel(inner, it.desc)); layout->addSpacing(2);
         m_boxes[it.key] = cb;
     }
     addSection("Windows Compatibility");
-    for (const auto &it : QList<Item>{dnfItems[2], dnfItems[3]}) {
+    for (const auto &it : QList<Item>{dnfItems[3], dnfItems[4]}) {
         auto *cb = makeItemRow(inner, layout, it.label, false);
         layout->addWidget(makeDescLabel(inner, it.desc)); layout->addSpacing(2);
         m_boxes[it.key] = cb;
@@ -105,7 +112,7 @@ void GamingPage::initializePage()
         m_boxes[it.key] = cb;
     }
     addSection("Performance & Monitoring");
-    for (const auto &it : QList<Item>{dnfItems[4], dnfItems[5], dnfItems[6]}) {
+    for (const auto &it : QList<Item>{dnfItems[5], dnfItems[6], dnfItems[7]}) {
         auto *cb = makeItemRow(inner, layout, it.label, false);
         layout->addWidget(makeDescLabel(inner, it.desc)); layout->addSpacing(2);
         m_boxes[it.key] = cb;
@@ -130,8 +137,11 @@ void GamingPage::initializePage()
     // Run all install checks concurrently - page is shown immediately,
     // badges update when checks complete (typically < 1 second)
     QList<QPair<QString, std::function<bool()>>> checks;
-    for (const auto &it : dnfItems)
+    checks.append({"kernel_modules_extra", []{ return isDnfInstalled("kernel-modules-extra"); }});
+    for (const auto &it : dnfItems) {
+        if (it.key == "kernel_modules_extra") continue;  // handled above with correct package name
         checks.append({it.key, [key=it.key]{ return isDnfInstalled(key); }});
+    }
     checks.append({"heroic",     []{ return isDnfInstalled("heroic-games-launcher-bin"); }});
     checks.append({"protonup",   []{ return isFlatpakInstalled("net.davidotek.pupgui2"); }});
     checks.append({"protonplus", []{ return isFlatpakInstalled("com.vysp3r.ProtonPlus"); }});

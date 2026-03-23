@@ -7,9 +7,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Fedora](https://img.shields.io/badge/Fedora-43%2B-blue?logo=fedora&logoColor=white)](https://fedoraproject.org)
 [![Qt](https://img.shields.io/badge/Qt-6-green?logo=qt&logoColor=white)](https://www.qt.io)
-[![ClaudeAI](https://img.shields.io/badge/MadeWith-ClaudeAI-orange)](https://claude.ai)
-
-
 
 </div>
 
@@ -90,5 +87,5 @@ MIT — see [LICENSE](LICENSE) for details.
 ---
 
 <div align="center">
-Made for <a href="https://fedoraproject.org">Fedora</a> · by <a href="https://www.youtube.com/@linuxgamerlife">LinuxGamerLife with ClaudeAI</a>
+Made for <a href="https://fedoraproject.org">Fedora</a> · by <a href="https://www.youtube.com/@linuxgamerlife">LinuxGamerLife</a>
 </div>

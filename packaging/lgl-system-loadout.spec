@@ -1,17 +1,15 @@
 Name:           lgl-system-loadout
-Version:        1.1.0
+Version:        1.1.1
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
 License:        MIT
 URL:            https://github.com/linuxgamerlife/lgl-system-loadout
-Source0:        https://github.com/linuxgamerlife/lgl-system-loadout/releases/download/v%{version}/lgl-system-loadout-%{version}.zip
-
+Source0:        %{name}-%{version}.zip
 BuildRequires:  cmake >= 3.16
+BuildRequires:  unzip
 BuildRequires:  gcc-c++
 BuildRequires:  qt6-qtbase-devel
-BuildRequires:  unzip
-
 # Runtime dependencies
 # qt6-qtbase is the only true library dependency — all other tools (dnf, curl,
 # flatpak) are invoked via the privileged helper and are already present on any
@@ -29,7 +27,9 @@ installed before you commit. One password prompt covers the entire
 installation.
 
 %prep
-%setup -q -n lgl-system-loadout
+cd %{_builddir}
+unzip -q %{SOURCE0}
+%setup -q -n lgl-system-loadout -D -T
 
 %build
 mkdir -p build
@@ -121,6 +121,13 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Sun Mar 22 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.1.1-1
+- Added kernel-modules-extra for controller support on Gaming page
+- Fixed Flatpak progress output in log
+- Fixed clipboard buttons on Done page (Wayland)
+- Fixed graphical artifact during Flatpak installs
+- Improved first launch reliability after install from Discover
+
 * Tue Mar 17 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.1.0-1
 - Privilege separation: GUI now runs as normal user at all times
 - New privileged helper binary (lgl-system-loadout-helper) launched via pkexec

@@ -2,6 +2,19 @@
 
 ---
 
+## [1.1.1] — 2026-03-22
+
+### Added
+- Controller Support section on Gaming page — kernel-modules-extra for controller and input device support
+
+### Fixed
+- Flatpak progress output no longer spams individual percentage lines in the log
+- Clipboard buttons on Done page now work reliably on Wayland
+- Graphical artifact (patience message overlapping log) during Flatpak installs removed
+- First launch from Discover post-install — silent retry with 1.5s delay if pkexec not immediately available
+
+---
+
 ## [1.1.0] — 2026-03-19
 
 ### Security

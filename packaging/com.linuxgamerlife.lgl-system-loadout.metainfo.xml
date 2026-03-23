@@ -55,6 +55,18 @@
   </requires>
 
   <releases>
+    <release version="1.1.1" date="2026-03-22">
+      <description>
+        <p>Bug fixes and controller support.</p>
+        <ul>
+          <li>Added kernel-modules-extra for controller and input device support</li>
+          <li>Fixed Flatpak progress output spamming the log</li>
+          <li>Fixed clipboard buttons on Done page for Wayland</li>
+          <li>Fixed graphical artifact during Flatpak installs</li>
+          <li>Improved first launch reliability after install from Discover</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.4" date="2026-03-10">
       <description>
         <p>Packaging fix.</p>
