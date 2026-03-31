@@ -6,7 +6,9 @@
 
 ### Changed
 - Bootstrap step now installs `python3-dnf5-plugins` instead of `dnf-plugins-core` — correct DNF5 package for Fedora 43+ (DNF4 plugins package was unused and potentially absent on Fedora 44)
+- Bootstrap step uses `dnf5-plugins` on Fedora 44+ (`python3-dnf5-plugins` was renamed)
 - Version detection fallback updated to Fedora 44
+- AMD GPU page uses `mesa-va-drivers-freeworld` (RPM Fusion) on Fedora 44+ — `mesa-va-drivers` was replaced in F44
 
 ---
 

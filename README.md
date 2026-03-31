@@ -5,7 +5,7 @@
 **Get a fresh Fedora install ready for gaming, content creation, and development — without the terminal.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Fedora](https://img.shields.io/badge/Fedora-43%2B-blue?logo=fedora&logoColor=white)](https://fedoraproject.org)
+[![Fedora](https://img.shields.io/badge/Fedora-43%20%7C%2044-blue?logo=fedora&logoColor=white)](https://fedoraproject.org)
 [![Qt](https://img.shields.io/badge/Qt-6-green?logo=qt&logoColor=white)](https://www.qt.io)
 <p align="center">
   <a href="https://ko-fi.com/G2G3V70LW">
@@ -39,7 +39,10 @@ Launch **LGL System Loadout** from your application menu.
 
 ### No Terminal — RPM from Releases
 
-Download the latest `.rpm` from [GitHub Releases](https://github.com/linuxgamerlife/lgl-system-loadout/releases) and double-click to install via Discover.
+Download the `.rpm` for your Fedora version from [GitHub Releases](https://github.com/linuxgamerlife/lgl-system-loadout/releases) and double-click to install via Discover.
+
+- `lgl-system-loadout-1.1.2-1.fc43.x86_64.rpm` — Fedora 43
+- `lgl-system-loadout-1.1.2-1.fc44.x86_64.rpm` — Fedora 44
 
 > After installing from Discover, close it and launch the app from your application menu rather than from the Discover install screen.
 
