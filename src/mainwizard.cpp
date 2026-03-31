@@ -203,11 +203,14 @@ QList<InstallStep> MainWizard::buildSteps() const
 
     // ---- System update (optional, user chose on update page) ----
     // ---- Always: bootstrap dnf tools ----
+    // python3-dnf5-plugins was renamed to dnf5-plugins in Fedora 44.
+    const QString dnf5PluginsPkg = (m_fedoraVersion.toInt() >= 44)
+                                   ? "dnf5-plugins" : "python3-dnf5-plugins";
     S << InstallStep{"bootstrap", "Ensure core system tools are present",
-        {"/usr/bin/dnf", "-y", "install", "curl", "wget2-wget", "git", "python3-dnf5-plugins"},
+        {"/usr/bin/dnf", "-y", "install", "curl", "wget2-wget", "git", dnf5PluginsPkg},
         /*optional=*/false,
         /*alreadyInstalledCheck=*/{"/usr/bin/rpm", "-q", "--quiet",
-            "curl", "wget2-wget", "git", "python3-dnf5-plugins"}};
+            "curl", "wget2-wget", "git", dnf5PluginsPkg}};
 
     // ---- Repos ----
     if (get("repos/rpmfusion_free")) {
