@@ -93,6 +93,12 @@ void GpuPage::initializePage()
         recLayout->addWidget(recLabel);
         amdLayout->addWidget(recBox);
 
+        // mesa-va-drivers was replaced by mesa-va-drivers-freeworld (RPM Fusion) in Fedora 44.
+        const QString mesaVaPkg = (m_wiz->fedoraVersion().toInt() >= 44)
+                                  ? "mesa-va-drivers-freeworld" : "mesa-va-drivers";
+        const QString mesaVaDesc = (m_wiz->fedoraVersion().toInt() >= 44)
+                                  ? "VA-API driver for AMD (RPM Fusion) - GPU-accelerated video decode in VLC, Firefox, mpv, OBS."
+                                  : "VA-API driver for AMD - GPU-accelerated video decode in VLC, Firefox, mpv, OBS.";
         const QList<std::tuple<QString,QString,QString>> amdItems = {
             {"mesa_dri",      "mesa-dri-drivers",
              "Core Mesa DRI drivers - provides OpenGL support for AMD GPUs. Essential."},
@@ -100,8 +106,7 @@ void GpuPage::initializePage()
              "Mesa Vulkan drivers (RADV) - AMD open-source Vulkan. Required for DXVK and VKD3D-Proton."},
             {"vulkan_loader", "vulkan-loader",
              "Vulkan ICD loader - connects applications to the Vulkan driver."},
-            {"mesa_va",       "mesa-va-drivers",
-             "VA-API driver for AMD - GPU-accelerated video decode in VLC, Firefox, mpv, OBS."},
+            {"mesa_va",       mesaVaPkg, mesaVaDesc},
             {"linux_fw",      "linux-firmware",
              "Firmware blobs for AMD GPUs. Without this, GPU may run at reduced clocks."},
         };
@@ -161,11 +166,13 @@ void GpuPage::initializePage()
     connect(m_radioSkip,   &QRadioButton::toggled, this, &GpuPage::onGpuChoice);
 
     // Run AMD install checks concurrently - must use actual package names, not map keys
+    const QString mesaVaCheckPkg = (m_wiz->fedoraVersion().toInt() >= 44)
+                                   ? "mesa-va-drivers-freeworld" : "mesa-va-drivers";
     const QMap<QString,QString> amdPkgNames = {
         {"mesa_dri",      "mesa-dri-drivers"},
         {"mesa_vulkan",   "mesa-vulkan-drivers"},
         {"vulkan_loader", "vulkan-loader"},
-        {"mesa_va",       "mesa-va-drivers"},
+        {"mesa_va",       mesaVaCheckPkg},
         {"linux_fw",      "linux-firmware"},
     };
     QList<QPair<QString, std::function<bool()>>> _checks;

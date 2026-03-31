@@ -281,11 +281,14 @@ QList<InstallStep> MainWizard::buildSteps() const
     // ---- GPU Drivers (AMD) ----
     const QString gpuChoice = m_opts.value("gpu/choice", "none").toString();
     if (gpuChoice == "amd") {
+        // mesa-va-drivers was replaced by mesa-va-drivers-freeworld (RPM Fusion) in Fedora 44.
+        const QString mesaVaPkg = (m_fedoraVersion.toInt() >= 44)
+                                  ? "mesa-va-drivers-freeworld" : "mesa-va-drivers";
         for (const auto &[key, pkg] : QList<QPair<QString,QString>>{
                 {"mesa_dri",      "mesa-dri-drivers"},
                 {"mesa_vulkan",   "mesa-vulkan-drivers"},
                 {"vulkan_loader", "vulkan-loader"},
-                {"mesa_va",       "mesa-va-drivers"},
+                {"mesa_va",       mesaVaPkg},
                 {"linux_fw",      "linux-firmware"},
             }) {
             if (get(QString("gpu/amd/%1").arg(key)))
