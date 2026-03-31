@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
-project(lgl-system-loadout VERSION 1.1.1 LANGUAGES CXX)
+project(lgl-system-loadout VERSION 1.1.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # C++17 is used rather than C++20 (the preferred standard) because compiling
 # Qt6 headers in C++20 mode activates C++20-specific Qt code paths that
 # reference symbols only present in Qt 6.10+, breaking compatibility with
-# the Qt6 version shipped on Fedora 43 target systems.
+# the Qt6 version shipped on Fedora 43+ target systems.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 

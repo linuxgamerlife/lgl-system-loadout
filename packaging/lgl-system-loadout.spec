@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        1.1.1
+Version:        1.1.2
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -13,7 +13,7 @@ BuildRequires:  qt6-qtbase-devel
 # Runtime dependencies
 # qt6-qtbase is the only true library dependency — all other tools (dnf, curl,
 # flatpak) are invoked via the privileged helper and are already present on any
-# Fedora 43 system. Declaring them here causes unnecessary resolver conflicts.
+# Fedora 43+ system. Declaring them here causes unnecessary resolver conflicts.
 Requires:       qt6-qtbase
 Requires:       polkit
 
@@ -36,7 +36,8 @@ mkdir -p build
 cd build
 cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=%{_prefix}
+    -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+    -DCMAKE_DISABLE_FIND_PACKAGE_Qt6Test=ON
 %make_build
 
 %install
@@ -121,6 +122,10 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Mon Mar 30 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.1.2-1
+- Fedora 44 compatibility
+- Bootstrap step now installs python3-dnf5-plugins instead of dnf-plugins-core (DNF5/F43+ correction)
+
 * Sun Mar 22 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.1.1-1
 - Added kernel-modules-extra for controller support on Gaming page
 - Fixed Flatpak progress output in log

@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication app(argc, argv);
     app.setApplicationName("lgl-system-loadout-helper");
-    app.setApplicationVersion("1.1.1");
+    app.setApplicationVersion("1.1.2");
 
     HelperServer server;
     if (!server.start()) {

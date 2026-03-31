@@ -55,6 +55,15 @@
   </requires>
 
   <releases>
+    <release version="1.1.2" date="2026-03-30">
+      <description>
+        <p>Fedora 44 compatibility.</p>
+        <ul>
+          <li>Fedora 44 support added</li>
+          <li>Bootstrap now uses python3-dnf5-plugins instead of dnf-plugins-core (correct DNF5 package for Fedora 43+)</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.1.1" date="2026-03-22">
       <description>
         <p>Bug fixes and controller support.</p>

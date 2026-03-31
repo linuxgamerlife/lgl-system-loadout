@@ -71,7 +71,7 @@ void MainWizard::detectSystem()
         if (!p.waitForFinished(3000)) p.kill();
         m_fedoraVersion = QString::fromUtf8(p.readAllStandardOutput()).trimmed();
         if (m_fedoraVersion.isEmpty() || m_fedoraVersion.startsWith('%'))
-            m_fedoraVersion = "43";
+            m_fedoraVersion = "44";
     }
     {
         // targetUser is passed as an argument to usermod and as context for
@@ -204,10 +204,10 @@ QList<InstallStep> MainWizard::buildSteps() const
     // ---- System update (optional, user chose on update page) ----
     // ---- Always: bootstrap dnf tools ----
     S << InstallStep{"bootstrap", "Ensure core system tools are present",
-        {"/usr/bin/dnf", "-y", "install", "curl", "wget2-wget", "git", "dnf-plugins-core"},
+        {"/usr/bin/dnf", "-y", "install", "curl", "wget2-wget", "git", "python3-dnf5-plugins"},
         /*optional=*/false,
         /*alreadyInstalledCheck=*/{"/usr/bin/rpm", "-q", "--quiet",
-            "curl", "wget2-wget", "git", "dnf-plugins-core"}};
+            "curl", "wget2-wget", "git", "python3-dnf5-plugins"}};
 
     // ---- Repos ----
     if (get("repos/rpmfusion_free")) {

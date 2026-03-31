@@ -2,6 +2,14 @@
 
 ---
 
+## [1.1.2] — 2026-03-30
+
+### Changed
+- Bootstrap step now installs `python3-dnf5-plugins` instead of `dnf-plugins-core` — correct DNF5 package for Fedora 43+ (DNF4 plugins package was unused and potentially absent on Fedora 44)
+- Version detection fallback updated to Fedora 44
+
+---
+
 ## [1.1.1] — 2026-03-22
 
 ### Added
