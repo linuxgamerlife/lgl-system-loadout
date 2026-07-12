@@ -64,8 +64,6 @@ install -Dm644 packaging/lgl-system-loadout-128.png \
     %{buildroot}%{_datadir}/icons/hicolor/128x128/apps/lgl-system-loadout.png
 install -Dm644 packaging/lgl-system-loadout-64.png \
     %{buildroot}%{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout.png
-install -Dm644 packaging/lgl-system-loadout-64.png \
-    %{buildroot}%{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout-64.png
 install -Dm644 packaging/lgl-system-loadout-48.png \
     %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/lgl-system-loadout.png
 
@@ -117,7 +115,6 @@ fi
 %{_datadir}/icons/hicolor/256x256/apps/lgl-system-loadout.png
 %{_datadir}/icons/hicolor/128x128/apps/lgl-system-loadout.png
 %{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout.png
-%{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout-64.png
 %{_datadir}/icons/hicolor/48x48/apps/lgl-system-loadout.png
 %{_datadir}/pixmaps/lgl-system-loadout.png
 

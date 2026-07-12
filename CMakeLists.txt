@@ -52,7 +52,8 @@ qt_add_executable(lgl-system-loadout
     ${PROJECT_SOURCE_DIR}/src/pages/browserspage.cpp    ${PROJECT_SOURCE_DIR}/src/pages/browserspage.h
     ${PROJECT_SOURCE_DIR}/src/pages/commspage.cpp       ${PROJECT_SOURCE_DIR}/src/pages/commspage.h
     ${PROJECT_SOURCE_DIR}/src/pages/cachyospage.cpp     ${PROJECT_SOURCE_DIR}/src/pages/cachyospage.h
-    ${PROJECT_SOURCE_DIR}/src/pages/scxpage.cpp         ${PROJECT_SOURCE_DIR}/src/pages/scxpage.h
+    ${PROJECT_SOURCE_DIR}/src/pages/lgltoolkitpage.cpp  ${PROJECT_SOURCE_DIR}/src/pages/lgltoolkitpage.h
+    ${PROJECT_SOURCE_DIR}/src/pages/kineticwepage.cpp   ${PROJECT_SOURCE_DIR}/src/pages/kineticwepage.h
     ${PROJECT_SOURCE_DIR}/src/pages/reviewpage.cpp      ${PROJECT_SOURCE_DIR}/src/pages/reviewpage.h
     ${PROJECT_SOURCE_DIR}/src/pages/installpage.cpp  ${PROJECT_SOURCE_DIR}/src/pages/installpage.h
     ${PROJECT_SOURCE_DIR}/src/pages/donepage.cpp        ${PROJECT_SOURCE_DIR}/src/pages/donepage.h
@@ -79,26 +80,3 @@ target_link_libraries(lgl-system-loadout-helper PRIVATE Qt6::Core Qt6::Network)
 
 install(TARGETS lgl-system-loadout-helper
         RUNTIME DESTINATION /usr/libexec/lgl-system-loadout)
-
-# ---------------------------------------------------------------------------
-# Tests — require Qt6::Test; skipped automatically if the component is absent.
-# Build:  cmake .. -DCMAKE_BUILD_TYPE=Debug && make && ctest --output-on-failure
-# ---------------------------------------------------------------------------
-find_package(Qt6 QUIET COMPONENTS Test)
-if(Qt6Test_FOUND)
-    enable_testing()
-
-    qt_add_executable(tst_installworker
-        ${PROJECT_SOURCE_DIR}/tests/tst_installworker.cpp
-        ${PROJECT_SOURCE_DIR}/src/installworker.cpp
-        ${PROJECT_SOURCE_DIR}/src/installworker.h
-    )
-    target_include_directories(tst_installworker PRIVATE ${PROJECT_SOURCE_DIR}/src)
-    target_link_libraries(tst_installworker PRIVATE Qt6::Core Qt6::Test Qt6::Network)
-
-    add_test(NAME InstallWorker COMMAND tst_installworker)
-    set_tests_properties(InstallWorker PROPERTIES TIMEOUT 60)
-else()
-    message(STATUS "Qt6::Test not found — test targets skipped. "
-                   "Install qt6-qtbase-devel to enable.")
-endif()

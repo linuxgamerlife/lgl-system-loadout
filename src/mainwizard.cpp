@@ -12,7 +12,8 @@
 #include "pages/browserspage.h"
 #include "pages/commspage.h"
 #include "pages/cachyospage.h"
-#include "pages/scxpage.h"
+#include "pages/lgltoolkitpage.h"
+#include "pages/kineticwepage.h"
 #include "pages/reviewpage.h"
 #include "pages/installpage.h"
 #include "pages/donepage.h"
@@ -32,7 +33,7 @@ MainWizard::MainWizard(QWidget *parent) : QWizard(parent)
     detectSystem();
 
     setWindowTitle("LGL System Loadout");
-    setMinimumSize(960, 700);
+    setMinimumSize(1100, 1000);
     setWizardStyle(QWizard::ModernStyle);
     setOption(QWizard::NoBackButtonOnStartPage, true);
     setOption(QWizard::NoBackButtonOnLastPage,  true);
@@ -51,7 +52,8 @@ MainWizard::MainWizard(QWidget *parent) : QWizard(parent)
     setPage(PAGE_BROWSERS,    new BrowsersPage(this));
     setPage(PAGE_COMMS,       new CommsPage(this));
     setPage(PAGE_CACHYOS,     new CachyOSPage(this));
-    setPage(PAGE_SCX,         new ScxPage(this));
+    setPage(PAGE_TOOLKIT,     new LglToolKitPage(this));
+    setPage(PAGE_KINETICWE,   new KineticWEPage(this));
     setPage(PAGE_REVIEW,      new ReviewPage(this));
     setPage(PAGE_INSTALL,     new InstallPage(this));
     setPage(PAGE_DONE,        new DonePage(this));
@@ -228,25 +230,30 @@ QList<InstallStep> MainWizard::buildSteps() const
 
     // ---- System Tools ----
     for (const auto &pkg : QStringList{
-             "fastfetch", "btop", "htop", "distrobox", "xrdp", "timeshift"}) {
+             "fastfetch", "btop", "htop", "xrdp", "cmatrix", "distrobox", "timeshift"}) {
         if (get(QString("systools/%1").arg(pkg)))
             S << dnfStep(QString("systool_%1").arg(pkg), pkg);
     }
+    if (get("systools/flatseal"))
+        S << flatpakStep("flatpak_flatseal", "com.github.tchx84.Flatseal", "Flatseal");
 
     // ---- Python & CLI dev tools ----
     if (get("python/pip"))
         S << dnfStep("pip", "python3-pip");
 
-    if (get("python/pipx")) {
+    // pipx is also needed for tldr (System Tools) and yt-dlp (Content Creation),
+    // even if the pipx checkbox itself isn't selected.
+    if (get("python/pipx") || get("systools/tldr") || get("content/ytdlp")) {
         S << dnfStep("pipx_pkg", "pipx");
     }
-    if (get("python/tldr"))
+    if (get("systools/tldr"))
         S << InstallStep{"pipx_tldr", "Install tldr via pipx",
             {"/usr/bin/sudo", "-u", tu, "/usr/bin/pipx", "install", "--include-deps", "tldr"}};
 
-    if (get("python/ytdlp"))
-        S << InstallStep{"pipx_ytdlp", "Install yt-dlp via pipx",
-            {"/usr/bin/sudo", "-u", tu, "/usr/bin/pipx", "install", "--include-deps", "yt-dlp"}};
+    if (get("python/zed"))
+        S << flatpakStep("flatpak_zed", "dev.zed.Zed", "Zed");
+    if (get("python/github_desktop"))
+        S << flatpakStep("flatpak_github_desktop", "io.github.shiftey.Desktop", "GitHub Desktop");
 
     // ---- Multimedia & Codecs ----
     if (get("media/ffmpeg"))
@@ -277,6 +284,9 @@ QList<InstallStep> MainWizard::buildSteps() const
         if (get(QString("content/%1").arg(key)))
             S << dnfStep(key, pkg);
     }
+    if (get("content/ytdlp"))
+        S << InstallStep{"pipx_ytdlp", "Install yt-dlp via pipx",
+            {"/usr/bin/sudo", "-u", tu, "/usr/bin/pipx", "install", "--include-deps", "yt-dlp"}};
 
     // ---- GPU Drivers (AMD) ----
     const QString gpuChoice = m_opts.value("gpu/choice", "none").toString();
@@ -284,9 +294,12 @@ QList<InstallStep> MainWizard::buildSteps() const
         // mesa-va-drivers was replaced by mesa-va-drivers-freeworld (RPM Fusion) in Fedora 44.
         const QString mesaVaPkg = (m_fedoraVersion.toInt() >= 44)
                                   ? "mesa-va-drivers-freeworld" : "mesa-va-drivers";
+        // mesa-vulkan-drivers was replaced by mesa-vulkan-drivers-freeworld (RPM Fusion) in Fedora 44.
+        const QString mesaVulkanPkg = (m_fedoraVersion.toInt() >= 44)
+                                  ? "mesa-vulkan-drivers-freeworld" : "mesa-vulkan-drivers";
         for (const auto &[key, pkg] : QList<QPair<QString,QString>>{
                 {"mesa_dri",      "mesa-dri-drivers"},
-                {"mesa_vulkan",   "mesa-vulkan-drivers"},
+                {"mesa_vulkan",   mesaVulkanPkg},
                 {"vulkan_loader", "vulkan-loader"},
                 {"mesa_va",       mesaVaPkg},
                 {"linux_fw",      "linux-firmware"},
@@ -301,11 +314,13 @@ QList<InstallStep> MainWizard::buildSteps() const
     // ---- Flatpak infrastructure (injected once if any Flatpak item selected) ----
     const bool needFlatpak =
         get("gaming/heroic")    || get("gaming/protonup")   ||
-        get("gaming/protonplus")|| get("gaming/flatseal")   ||
-        get("content/blender")  ||
+        get("gaming/protonplus")||
+        get("systools/flatseal")||
+        get("content/blender")  || get("content/tenacity")  ||
         get("comms/discord")    || get("comms/vesktop")     ||
         get("comms/spotify")    || get("comms/thunderbird") ||
-        get("browsers/librewolf");
+        get("browsers/librewolf")||
+        get("python/zed")       || get("python/github_desktop");
 
     if (needFlatpak) {
         S << dnfStep("flatpak_pkg", "flatpak");
@@ -341,12 +356,16 @@ QList<InstallStep> MainWizard::buildSteps() const
             {"/usr/bin/dnf", "copr", "enable", "-y", "atim/heroic-games-launcher"}};
         S << dnfStep("heroic_install", "heroic-games-launcher-bin");
     }
-    if (get("gaming/protonup"))
-        S << flatpakStep("flatpak_protonup", "net.davidotek.pupgui2", "ProtonUp-Qt");
     if (get("gaming/protonplus"))
         S << flatpakStep("flatpak_protonplus", "com.vysp3r.ProtonPlus", "ProtonPlus");
-    if (get("gaming/flatseal"))
-        S << flatpakStep("flatpak_flatseal", "com.github.tchx84.Flatseal", "Flatseal");
+    if (get("gaming/protonup"))
+        S << flatpakStep("flatpak_protonup", "net.davidotek.pupgui2", "ProtonUp-Qt");
+    // Faugus: COPR, not Flatpak.
+    if (get("gaming/faugus")) {
+        S << InstallStep{"faugus_copr", "Enable Faugus Game Launcher COPR",
+            {"/usr/bin/dnf", "copr", "enable", "-y", "faugus/faugus-launcher"}};
+        S << dnfStep("faugus_install", "faugus-launcher");
+    }
 
     // ---- Virtualisation ----
     const bool anyVirt = get("virt/virtmanager") || get("virt/libvirt") ||
@@ -402,6 +421,11 @@ QList<InstallStep> MainWizard::buildSteps() const
         S << flatpakStep("librewolf", "io.gitlab.librewolf-community", "LibreWolf");
 
     // ---- Communication & Productivity ----
+    if (get("comms/office_calc"))
+        S << dnfStep("office_calc", "libreoffice-calc");
+    if (get("comms/office_writer"))
+        S << dnfStep("office_writer", "libreoffice-writer");
+
     if (get("comms/thunderbird"))
         S << flatpakStep("flatpak_thunderbird", "org.mozilla.Thunderbird", "Thunderbird");
 
@@ -420,9 +444,9 @@ QList<InstallStep> MainWizard::buildSteps() const
 
         // ---- CachyOS Kernel ----
     // kernel-cachyos COPR is only needed for the kernel itself.
-    // kernel-cachyos-addons COPR is needed for both the kernel and all scx packages.
-    const bool anyScx = get("cachyos/scx_scheds") || get("cachyos/scx_manager") || get("cachyos/scx_tools");
-    if (get("cachyos/kernel") || anyScx) {
+    // kernel-cachyos-addons COPR is needed for both the kernel and scx packages
+    // (scx-tools/scx-scheds are a prerequisite of LGL SCXCTL Manager, below).
+    if (get("cachyos/kernel") || get("toolkit/lgl_scxctl_manager")) {
         S << InstallStep{"cachyos_copr2", "Enable kernel-cachyos-addons COPR",
             {"/usr/bin/dnf", "copr", "enable", "-y", "bieszczaders/kernel-cachyos-addons"}};
     }
@@ -440,23 +464,44 @@ QList<InstallStep> MainWizard::buildSteps() const
         S << InstallStep{"selinux_bool", "Set SELinux domain_kernel_load_modules",
             {"/usr/sbin/setsebool", "-P", "domain_kernel_load_modules", "on"}};
 
-    // scx packages: exit 1 is a known benign exit on some kernel configs.
-    if (get("cachyos/scx_scheds"))
-        // Skip if either the stable or git variant is already present —
-        // both provide the same scheduler functionality.
-        S << InstallStep{"scx_scheds", "Install scx-scheds",
+    // ---- LGL Tool Kit ----
+    if (get("toolkit/lgl_scxctl_manager")) {
+        // scx-tools/scx-scheds are a prerequisite — exit 1 is a known benign exit on some kernel configs.
+        S << InstallStep{"toolkit_scx_scheds", "Install scx-scheds (prerequisite)",
             {"/usr/bin/dnf", "-y", "install", "--allowerasing", "scx-scheds"},
             /*optional=*/true,
             /*alreadyInstalledCheck=*/{"/usr/bin/rpm", "-q", "--quiet", "scx-scheds-git"},
             {1}};
-    if (get("cachyos/scx_manager"))
-        S << InstallStep{"scx_manager", "Install scx-manager",
-            {"/usr/bin/dnf", "-y", "install", "--allowerasing", "scx-manager"},
-            /*optional=*/false, {}, {1}};
-    if (get("cachyos/scx_tools"))
-        S << InstallStep{"scx_tools", "Install scx-tools",
+        S << InstallStep{"toolkit_scx_tools", "Install scx-tools (prerequisite)",
             {"/usr/bin/dnf", "-y", "install", "--allowerasing", "scx-tools"},
             /*optional=*/false, {}, {1}};
+        S << InstallStep{"toolkit_scxctl_copr", "Enable lgl-scxctl-manager COPR",
+            {"/usr/bin/dnf", "copr", "enable", "-y", "linuxgamerlife/lgl-scxctl-manager"}};
+        S << dnfStep("toolkit_scxctl_install", "lgl-scxctl-manager");
+    }
+    for (const auto &[key, pkg, repo] : QList<std::tuple<QString,QString,QString>>{
+            {"lgl_dnf_helper",           "lgl-dnf-helper",           "linuxgamerlife/lgl-dnf-helper"},
+            {"lgl_emoji_picker",         "lgl-emoji-picker",         "linuxgamerlife/lgl-emoji-picker"},
+            {"lgl_colour_picker",        "lgl-colour-picker",        "linuxgamerlife/lgl-colour-picker"},
+            {"lgl_powerprofile_manager", "lgl-powerprofile-manager", "linuxgamerlife/lgl-powerprofile-manager"},
+        }) {
+        if (get(QString("toolkit/%1").arg(key))) {
+            S << InstallStep{QString("toolkit_%1_copr").arg(key), QString("Enable %1 COPR").arg(pkg),
+                {"/usr/bin/dnf", "copr", "enable", "-y", repo}};
+            S << dnfStep(QString("toolkit_%1_install").arg(key), pkg);
+        }
+    }
+
+    // ---- KineticWE ----
+    // Obsoletes stock kwin/kwin-common/kwin-libs — see the IMPORTANT notice on its page.
+    if (get("kineticwe/install")) {
+        S << InstallStep{"kineticwe_copr1", "Enable Hyprland COPR",
+            {"/usr/bin/dnf", "copr", "enable", "-y", "lionheartp/Hyprland"}};
+        S << InstallStep{"kineticwe_copr2", "Enable KineticWE COPR",
+            {"/usr/bin/dnf", "copr", "enable", "-y", "theblackdon/kineticwe"}};
+        S << InstallStep{"kineticwe_install", "Install kineticwe and noctalia-git",
+            {"/usr/bin/dnf", "-y", "install", "kineticwe", "noctalia-git"}};
+    }
 
     // ---- Final cleanup / tweaks ----
     if (get("systools/nm_wait_online"))
@@ -571,13 +616,15 @@ int MainWizard::estimateDiskMB() const
     if (get("repos/rpmfusion_nonfree")) mb += 1;
 
     for (const auto &pkg : QStringList{
-             "fastfetch", "btop", "htop", "distrobox", "xrdp", "timeshift"})
+             "fastfetch", "btop", "htop", "xrdp", "cmatrix", "distrobox", "timeshift"})
         if (get(QString("systools/%1").arg(pkg))) mb += 10;
+    if (get("systools/flatseal")) mb += 10;
+    if (get("systools/tldr"))     mb += 5;
 
-    if (get("python/pip"))   mb += 10;
-    if (get("python/pipx"))  mb += 5;
-    if (get("python/tldr"))  mb += 5;
-    if (get("python/ytdlp")) mb += 20;
+    if (get("python/pip"))  mb += 10;
+    if (get("python/pipx") || get("systools/tldr") || get("content/ytdlp")) mb += 5;
+    if (get("python/zed"))            mb += 150;
+    if (get("python/github_desktop")) mb += 150;
 
     if (get("media/ffmpeg"))             mb += 50;
     if (get("media/gst_bad_free_extras"))mb += 10;
@@ -589,7 +636,9 @@ int MainWizard::estimateDiskMB() const
     if (get("content/gimp"))     mb += 200;
     if (get("content/inkscape")) mb += 100;
     if (get("content/audacity")) mb += 30;
+    if (get("content/ytdlp"))    mb += 20;
     if (get("content/blender"))  mb += 600;
+    if (get("content/tenacity")) mb += 100;
 
     const QString gpuChoice = m_opts.value("gpu/choice", "none").toString();
     if (gpuChoice == "amd") {
@@ -610,7 +659,7 @@ int MainWizard::estimateDiskMB() const
     if (get("gaming/mangohud"))    mb += 10;
     if (get("gaming/goverlay"))    mb += 20;
     if (get("gaming/vkbasalt"))    mb += 5;
-    if (get("gaming/flatseal"))    mb += 10;
+    if (get("gaming/faugus"))      mb += 50;
 
     if (get("virt/virtmanager"))  mb += 30;
     if (get("virt/libvirt"))      mb += 50;
@@ -622,6 +671,8 @@ int MainWizard::estimateDiskMB() const
     if (get("browsers/vivaldi"))   mb += 423;
     if (get("browsers/librewolf")) mb += 300;
 
+    if (get("comms/office_calc"))   mb += 250;
+    if (get("comms/office_writer")) mb += 250;
     if (get("comms/thunderbird")) mb += 200;
     if (get("comms/discord"))     mb += 200;
     if (get("comms/vesktop"))     mb += 200;
@@ -630,16 +681,23 @@ int MainWizard::estimateDiskMB() const
 
     if (get("cachyos/kernel"))       mb += 120;
     if (get("cachyos/kernel_devel")) mb += 80;
-    if (get("cachyos/scx_scheds"))   mb += 10;
-    if (get("cachyos/scx_manager"))  mb += 5;
-    if (get("cachyos/scx_tools"))    mb += 5;
+    if (get("toolkit/lgl_scxctl_manager"))        mb += 60;  // includes scx-tools/scx-scheds prereqs
+    if (get("toolkit/lgl_dnf_helper"))             mb += 15;
+    if (get("toolkit/lgl_emoji_picker"))           mb += 15;
+    if (get("toolkit/lgl_colour_picker"))          mb += 15;
+    if (get("toolkit/lgl_powerprofile_manager"))   mb += 15;
+
+    if (get("kineticwe/install")) mb += 400;
 
     const bool anyFlatpak =
         get("gaming/heroic")    || get("gaming/protonup")   ||
-        get("gaming/protonplus")|| get("gaming/flatseal")   ||
+        get("gaming/protonplus")||
+        get("systools/flatseal")||
         get("comms/discord")    || get("comms/vesktop")     ||
         get("comms/spotify")    || get("comms/thunderbird") ||
-        get("browsers/librewolf") || get("content/blender");
+        get("browsers/librewolf") || get("content/blender") ||
+        get("content/tenacity") ||
+        get("python/zed")       || get("python/github_desktop");
     if (anyFlatpak) mb += 200;
 
     return mb;

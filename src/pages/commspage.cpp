@@ -60,6 +60,10 @@ void CommsPage::initializePage()
         m_boxes[key] = cb;
     };
 
+    addSection("Office (From Fedora Repos)");
+    addItem("office_calc",   "LibreOffice Calc",   "Spreadsheet application, part of LibreOffice.", false);
+    addItem("office_writer", "LibreOffice Writer", "Word processor, part of LibreOffice.",          false);
+
     addSection("Flatpak from Flathub");
     addItem("thunderbird", "Thunderbird  (Flatpak)", "Full-featured email, calendar, and contacts client.", false);
     addItem("discord",     "Discord  (Flatpak)",     "Voice, video, and text chat for gaming communities.",        false);
@@ -71,6 +75,8 @@ void CommsPage::initializePage()
     outer->addWidget(inner);
     // Run install checks concurrently
     QList<QPair<QString, std::function<bool()>>> _checks;
+    _checks.append({"office_calc",   []{ return isDnfInstalled("libreoffice-calc"); }});
+    _checks.append({"office_writer", []{ return isDnfInstalled("libreoffice-writer"); }});
     _checks.append({"thunderbird", []{ return isFlatpakInstalled("org.mozilla.Thunderbird"); }});
     _checks.append({"discord", []{ return isFlatpakInstalled("com.discordapp.Discord"); }});
     _checks.append({"vesktop", []{ return isFlatpakInstalled("dev.vencord.Vesktop"); }});

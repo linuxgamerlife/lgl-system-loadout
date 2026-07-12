@@ -52,6 +52,20 @@ void VirtPage::initializePage()
     auto *scroll = new SmoothScrollArea; scroll->setWidgetResizable(true); scroll->setFrameShape(QFrame::NoFrame);
     auto *inner = new QWidget; auto *layout = new QVBoxLayout(inner); layout->setSpacing(4);
 
+    auto *biosBox = new QFrame; biosBox->setFrameShape(QFrame::StyledPanel);
+    biosBox->setStyleSheet("QFrame { border: 2px solid #cc7700; border-radius: 4px; }");
+    auto *biosLayout = new QVBoxLayout(biosBox);
+    auto *biosLabel = new QLabel(
+        "<b>⚠ Enable virtualisation in your BIOS/UEFI</b><br><br>"
+        "For the best performance when running VMs, ensure hardware virtualisation (Intel VT-x/VT-d "
+        "or AMD-V/AMD-Vi) is enabled in your BIOS/UEFI firmware (usually by pressing F2, F10, F12, or "
+        "Del at startup). Without it, virtual machines will run significantly slower or may fail to start."
+    );
+    biosLabel->setWordWrap(true);
+    biosLayout->addWidget(biosLabel);
+    layout->addWidget(biosBox);
+    layout->addSpacing(8);
+
     const QList<std::tuple<QString,QString,QString,QString>> items = {
         {"virtmanager",  "virt-manager",  "Graphical interface for managing KVM virtual machines.",        "virt-manager"},
         {"libvirt",      "libvirt",       "Virtualisation API and daemon.",                                "libvirt"},

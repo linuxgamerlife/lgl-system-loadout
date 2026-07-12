@@ -15,6 +15,7 @@ public:
 private slots:
     void copyErrorsToClipboard();
     void copyFullLogToClipboard();
+    void rebootNow();
 
 private:
     MainWizard     *m_wiz;
@@ -22,4 +23,5 @@ private:
     QPlainTextEdit *m_errorDetail   = nullptr;
     QPushButton    *m_copyErrorsBtn = nullptr;
     QPushButton    *m_copyLogBtn    = nullptr;
+    QPushButton    *m_rebootBtn     = nullptr;
 };

@@ -93,6 +93,33 @@ void UpdatePage::initializePage()
     m_log->setFont(QFont("monospace"));
     outer->addWidget(m_log);
 
+    // Flatpak update prompt (hidden until system update completes)
+    m_flatpakLabel = new QLabel("Do you want to update Flatpaks?");
+    m_flatpakLabel->setVisible(false);
+    outer->addWidget(m_flatpakLabel);
+
+    auto *flatpakBtnWidget = new QWidget;
+    auto *flatpakBtnLayout = new QHBoxLayout(flatpakBtnWidget);
+    flatpakBtnLayout->setContentsMargins(0, 0, 0, 0);
+
+    m_flatpakYesBtn = new QPushButton("Yes");
+    m_flatpakYesBtn->setVisible(false);
+    m_flatpakNoBtn  = new QPushButton("No");
+    m_flatpakNoBtn->setVisible(false);
+
+    connect(m_flatpakYesBtn, &QPushButton::clicked, this, &UpdatePage::startFlatpakUpdate);
+    connect(m_flatpakNoBtn,  &QPushButton::clicked, this, [this] {
+        m_flatpakLabel->setVisible(false);
+        m_flatpakYesBtn->setVisible(false);
+        m_flatpakNoBtn->setVisible(false);
+        finishUpdate();
+    });
+
+    flatpakBtnLayout->addWidget(m_flatpakYesBtn);
+    flatpakBtnLayout->addWidget(m_flatpakNoBtn);
+    flatpakBtnLayout->addStretch();
+    outer->addWidget(flatpakBtnWidget);
+
     // Kernel detection / reboot area (hidden until update completes)
     m_kernelLabel = new QLabel;
     m_kernelLabel->setWordWrap(true);
@@ -148,11 +175,11 @@ void UpdatePage::startUpdate()
     QProcess snap;
     snap.start("/usr/bin/rpm", {"-q", "kernel", "kernel-cachyos", "--queryformat", "%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n"});
     snap.waitForFinished(5000);
-    const QString kernelsBefore = QString::fromLocal8Bit(snap.readAllStandardOutput()).trimmed();
+    m_kernelsBefore = QString::fromLocal8Bit(snap.readAllStandardOutput()).trimmed();
 
     // Launch helper for the update session
-    const QString socketPath = m_wiz->launchHelper();
-    if (socketPath.isEmpty()) {
+    m_socketPath = m_wiz->launchHelper();
+    if (m_socketPath.isEmpty()) {
         m_statusLabel->setText(
             "<span style='color:#cc0000;'>Error: failed to launch privileged helper. "
             "Check that pkexec and the helper binary are installed.</span>"
@@ -166,17 +193,23 @@ void UpdatePage::startUpdate()
 
     m_statusLabel->setText("<span style='color:#888;'>Updating…</span>");
 
-    // Run the update in a worker thread
-    auto *thread = new QThread(this);
-    auto *worker = new InstallWorker;
-    worker->moveToThread(thread);
-
     const QList<InstallStep> steps = {
         InstallStep{"system_update", "System update — dnf upgrade --refresh",
             {"/usr/bin/dnf", "-y", "upgrade", "--refresh"}}
     };
+    runSteps(steps, [this](int errors) {
+        onUpdateFinished(errors == 0);
+        promptFlatpakUpdate();
+    });
+}
+
+void UpdatePage::runSteps(const QList<InstallStep> &steps, std::function<void(int)> onDone)
+{
+    auto *thread = new QThread(this);
+    auto *worker = new InstallWorker;
+    worker->moveToThread(thread);
     worker->setSteps(steps);
-    worker->setSocketPath(socketPath);
+    worker->setSocketPath(m_socketPath);
 
     connect(thread, &QThread::started,       worker, &InstallWorker::run);
     connect(worker, &InstallWorker::logLine,  this,   [this](const QString &line) {
@@ -191,37 +224,12 @@ void UpdatePage::startUpdate()
         }
         m_log->verticalScrollBar()->setValue(m_log->verticalScrollBar()->maximum());
     });
-    connect(worker, &InstallWorker::allDone, this, [this, thread, worker, kernelsBefore](int errors) {
+    connect(worker, &InstallWorker::allDone, this, [this, thread, worker, onDone](int errors) {
         thread->quit();
         thread->wait();
         worker->deleteLater();
         thread->deleteLater();
-
-        // Clear socket path so Install page gets a fresh helper session
-        m_wiz->setOpt("install/socketPath", QString());
-
-        onUpdateFinished(errors == 0);
-
-        // Kernel detection
-        QProcess snap2;
-        snap2.start("/usr/bin/rpm", {"-q", "kernel", "kernel-cachyos", "--queryformat", "%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n"});
-        snap2.waitForFinished(5000);
-        const QString kernelsAfter = QString::fromLocal8Bit(snap2.readAllStandardOutput()).trimmed();
-
-        const bool newKernel = (kernelsAfter != kernelsBefore);
-        if (newKernel) {
-            m_kernelLabel->setText(
-                "<b>⚠ A new kernel was installed.</b><br>"
-                "A reboot is required before the new kernel takes effect. "
-                "It is strongly recommended to reboot now rather than continuing."
-            );
-            m_kernelLabel->setVisible(true);
-            m_rebootBtn->setVisible(true);
-            m_continueBtn->setVisible(true);
-        } else {
-            m_complete = true;
-            emit completeChanged();
-        }
+        onDone(errors);
     });
 
     thread->start();
@@ -240,6 +248,60 @@ void UpdatePage::onUpdateFinished(bool success)
         m_statusLabel->setText(
             "<span style='color:#cc7700;'>⚠ Update completed with errors. Check the log above.</span>"
         );
+    }
+}
+
+void UpdatePage::promptFlatpakUpdate()
+{
+    m_flatpakLabel->setVisible(true);
+    m_flatpakYesBtn->setVisible(true);
+    m_flatpakNoBtn->setVisible(true);
+}
+
+void UpdatePage::startFlatpakUpdate()
+{
+    m_flatpakLabel->setVisible(false);
+    m_flatpakYesBtn->setVisible(false);
+    m_flatpakNoBtn->setVisible(false);
+
+    m_statusLabel->setText("<span style='color:#888;'>Updating Flatpaks…</span>");
+    m_progress->setVisible(true);
+
+    const QList<InstallStep> steps = {
+        InstallStep{"flatpak_update", "Flatpak update",
+            {"/usr/bin/flatpak", "update", "-y", "--system"},
+            /*optional=*/true}
+    };
+    runSteps(steps, [this](int /*errors*/) {
+        m_progress->setVisible(false);
+        finishUpdate();
+    });
+}
+
+void UpdatePage::finishUpdate()
+{
+    // Clear socket path so Install page gets a fresh helper session
+    m_wiz->setOpt("install/socketPath", QString());
+
+    // Kernel detection
+    QProcess snap2;
+    snap2.start("/usr/bin/rpm", {"-q", "kernel", "kernel-cachyos", "--queryformat", "%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n"});
+    snap2.waitForFinished(5000);
+    const QString kernelsAfter = QString::fromLocal8Bit(snap2.readAllStandardOutput()).trimmed();
+
+    const bool newKernel = (kernelsAfter != m_kernelsBefore);
+    if (newKernel) {
+        m_kernelLabel->setText(
+            "<b>⚠ A new kernel was installed.</b><br>"
+            "A reboot is required before the new kernel takes effect. "
+            "It is strongly recommended to reboot now rather than continuing."
+        );
+        m_kernelLabel->setVisible(true);
+        m_rebootBtn->setVisible(true);
+        m_continueBtn->setVisible(true);
+    } else {
+        m_complete = true;
+        emit completeChanged();
     }
 }
 
