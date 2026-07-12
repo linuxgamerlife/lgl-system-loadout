@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        2.0.1
+Version:        2.0.2
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -116,6 +116,13 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Sun Jul 12 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 2.0.2-1
+- Fixed "could not connect to helper socket" error when accepting the Flatpak
+  update prompt on the System Update page — the privileged helper only ever
+  accepts one client connection for its whole process lifetime and had
+  already shut down after the system update step; the Flatpak update step
+  now launches its own fresh helper session, same as other phases already do
+
 * Sun Jul 12 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 2.0.1-1
 - Fixed app icon losing transparency (background baked in as opaque white
   instead of transparent when regenerating the 48/64/128/256 sizes)

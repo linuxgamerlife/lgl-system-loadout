@@ -55,6 +55,14 @@
   </requires>
 
   <releases>
+    <release version="2.0.2" date="2026-07-12">
+      <description>
+        <p>Bug fix release.</p>
+        <ul>
+          <li>Fixed a "could not connect to helper socket" error when accepting the Flatpak update prompt on the System Update page</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.1" date="2026-07-12">
       <description>
         <p>Bug fix release.</p>

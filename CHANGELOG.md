@@ -2,6 +2,13 @@
 
 ---
 
+## [2.0.2] — 2026-07-12
+
+### Fixed
+- "could not connect to helper socket" error when accepting the Flatpak update prompt on the System Update page — the privileged helper only ever accepts one client connection for its whole process lifetime and had already shut down after the system update step finished. The Flatpak update step now launches its own fresh helper session, same as other phases (Update, Install) already do — this means a second password prompt when accepting the Flatpak update, which is expected given the app's "no credential caching" policy
+
+---
+
 ## [2.0.1] — 2026-07-12
 
 ### Fixed

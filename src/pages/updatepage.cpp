@@ -264,8 +264,24 @@ void UpdatePage::startFlatpakUpdate()
     m_flatpakYesBtn->setVisible(false);
     m_flatpakNoBtn->setVisible(false);
 
-    m_statusLabel->setText("<span style='color:#888;'>Updating Flatpaks…</span>");
+    m_statusLabel->setText("<span style='color:#888;'>Launching privileged helper…</span>");
     m_progress->setVisible(true);
+
+    // The helper process from the system update phase has already shut down
+    // (it only ever accepts one client connection, for its whole lifetime) —
+    // launch a fresh session for this phase, same as Update/Install already do.
+    m_socketPath = m_wiz->launchHelper();
+    if (m_socketPath.isEmpty()) {
+        m_statusLabel->setText(
+            "<span style='color:#cc0000;'>Error: failed to launch privileged helper. "
+            "Check that pkexec and the helper binary are installed.</span>"
+        );
+        m_progress->setVisible(false);
+        finishUpdate();
+        return;
+    }
+
+    m_statusLabel->setText("<span style='color:#888;'>Updating Flatpaks…</span>");
 
     const QList<InstallStep> steps = {
         InstallStep{"flatpak_update", "Flatpak update",
