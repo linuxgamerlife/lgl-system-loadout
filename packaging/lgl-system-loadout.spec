@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        2.0.2
+Version:        2.0.3
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -116,6 +116,17 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Sun Jul 12 2026 LinuxGamerLife - 2.0.3-1
+- Fixed Flatpak installs failing for Flatseal, Zed, and GitHub Desktop — their
+  install steps ran before the Flathub remote was added
+- Fixed Tenacity never actually installing despite being selectable
+- Fixed reboot buttons on the Update and Done pages not triggering polkit —
+  they now go through the app's own privileged helper instead of a raw,
+  unmonitored pkexec call
+- Fixed Flatpak install-detection relying on PATH resolution instead of an
+  absolute path, and not recognizing Fedora's ESR-branded Thunderbird build
+  as already installed
+
 * Sun Jul 12 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 2.0.2-1
 - Fixed "could not connect to helper socket" error when accepting the Flatpak
   update prompt on the System Update page — the privileged helper only ever

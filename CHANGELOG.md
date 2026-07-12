@@ -2,6 +2,16 @@
 
 ---
 
+## [2.0.3] — 2026-07-12
+
+### Fixed
+- Flatpak installs failing for Flatseal, Zed, and GitHub Desktop — their install steps ran before the Flathub remote was added to the install queue
+- Tenacity never actually installing despite being selectable on the Content Creation page
+- Reboot buttons on the Update and Done pages not triggering polkit — they now go through the app's own privileged helper instead of a raw, unmonitored `pkexec` call with no error handling
+- Flatpak install-detection relying on `PATH` resolution instead of an absolute path, and not recognizing Fedora's ESR-branded Thunderbird build (`org.mozilla.thunderbird_esr`) as already installed
+
+---
+
 ## [2.0.2] — 2026-07-12
 
 ### Fixed

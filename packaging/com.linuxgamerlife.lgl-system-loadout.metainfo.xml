@@ -55,6 +55,17 @@
   </requires>
 
   <releases>
+    <release version="2.0.3" date="2026-07-12">
+      <description>
+        <p>Bug fix release.</p>
+        <ul>
+          <li>Fixed Flatpak installs failing for Flatseal, Zed, and GitHub Desktop</li>
+          <li>Fixed Tenacity never actually installing despite being selectable</li>
+          <li>Fixed reboot buttons on the Update and Done pages not triggering polkit</li>
+          <li>Fixed Flatpak install-detection missing Fedora's ESR-branded Thunderbird build</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.2" date="2026-07-12">
       <description>
         <p>Bug fix release.</p>
