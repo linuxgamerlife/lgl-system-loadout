@@ -2,6 +2,14 @@
 
 ---
 
+## [2.0.1] — 2026-07-12
+
+### Fixed
+- App icon lost transparency when regenerated at 48/64/128/256 — the resize/crop step baked in an opaque white background instead of preserving transparency
+- Spec `Source0` now points at GitHub's tag archive (`archive/refs/tags/v%{version}.tar.gz`) instead of a manually-built release zip, simplifying `%prep` to `%autosetup`
+
+---
+
 ## [2.0.0] — 2026-07-12
 
 ### Added

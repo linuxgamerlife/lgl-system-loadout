@@ -55,6 +55,14 @@
   </requires>
 
   <releases>
+    <release version="2.0.1" date="2026-07-12">
+      <description>
+        <p>Bug fix release.</p>
+        <ul>
+          <li>Fixed app icon losing transparency (background baked in as opaque white instead of transparent)</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.0" date="2026-07-12">
       <description>
         <p>LGL Tool Kit, KineticWE, and a reorganised Development Tools / Gaming / System Tools layout.</p>

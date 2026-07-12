@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        2.0.0
+Version:        2.0.1
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -116,6 +116,10 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Sun Jul 12 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 2.0.1-1
+- Fixed app icon losing transparency (background baked in as opaque white
+  instead of transparent when regenerating the 48/64/128/256 sizes)
+
 * Sun Jul 12 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 2.0.0-1
 - New "LGL Tool Kit" page (LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker,
   LGL Colour Picker, LGL Power Profile Manager), replacing the standalone SCX
