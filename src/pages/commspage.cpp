@@ -77,7 +77,11 @@ void CommsPage::initializePage()
     QList<QPair<QString, std::function<bool()>>> _checks;
     _checks.append({"office_calc",   []{ return isDnfInstalled("libreoffice-calc"); }});
     _checks.append({"office_writer", []{ return isDnfInstalled("libreoffice-writer"); }});
-    _checks.append({"thunderbird", []{ return isFlatpakInstalled("org.mozilla.Thunderbird"); }});
+    // Fedora's own flatpak remote ships Thunderbird as the ESR build under a
+    // different app ID than Flathub's regular release — treat either as installed.
+    _checks.append({"thunderbird", []{
+        return isFlatpakInstalledAny({"org.mozilla.Thunderbird", "org.mozilla.thunderbird_esr"});
+    }});
     _checks.append({"discord", []{ return isFlatpakInstalled("com.discordapp.Discord"); }});
     _checks.append({"vesktop", []{ return isFlatpakInstalled("dev.vencord.Vesktop"); }});
     _checks.append({"spotify", []{ return isFlatpakInstalled("com.spotify.Client"); }});

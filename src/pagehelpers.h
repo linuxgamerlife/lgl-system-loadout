@@ -124,9 +124,18 @@ inline bool isFlatpakInstalled(const QString &appId)
     // Running as root means --system scope; we need to check user scope too
     QProcess p;
     p.start("bash", {"-c",
-        QString("flatpak info --system '%1' 2>/dev/null || flatpak info --user '%1' 2>/dev/null").arg(appId)});
+        QString("/usr/bin/flatpak info --system '%1' 2>/dev/null || "
+                "/usr/bin/flatpak info --user '%1' 2>/dev/null").arg(appId)});
     if (!p.waitForFinished(6000)) { p.kill(); return false; }
     return p.exitCode() == 0;
+}
+
+inline bool isFlatpakInstalledAny(const QStringList &appIds)
+{
+    for (const QString &appId : appIds) {
+        if (isFlatpakInstalled(appId)) return true;
+    }
+    return false;
 }
 
 inline bool isPipxToolInstalled(const QString &user, const QString &tool)

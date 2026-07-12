@@ -5,7 +5,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPlainTextEdit>
-#include <QProcess>
 #include <QFrame>
 #include <QFont>
 #include <QPushButton>
@@ -103,6 +102,19 @@ void DonePage::rebootNow()
         "Please save any open files before rebooting.\n\n"
         "Reboot now?",
         QMessageBox::Yes | QMessageBox::Cancel);
-    if (reply == QMessageBox::Yes)
-        QProcess::startDetached("pkexec", {"/usr/bin/systemctl", "reboot"});
+    if (reply != QMessageBox::Yes)
+        return;
+    if (m_wiz->launchHelper().isEmpty()) {
+        QMessageBox::warning(this, "Reboot Failed",
+            "Could not launch the privileged helper to reboot.\n"
+            "Please reboot manually.");
+        return;
+    }
+    const int exitCode = m_wiz->runHelperCommand(
+        {"/usr/bin/systemctl", "reboot"}, [](const QString &) {});
+    if (exitCode != 0) {
+        QMessageBox::warning(this, "Reboot Failed",
+            "The reboot command did not complete successfully.\n"
+            "Please reboot manually.");
+    }
 }

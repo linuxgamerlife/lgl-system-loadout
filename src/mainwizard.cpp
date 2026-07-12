@@ -214,6 +214,26 @@ QList<InstallStep> MainWizard::buildSteps() const
         /*alreadyInstalledCheck=*/{"/usr/bin/rpm", "-q", "--quiet",
             "curl", "wget2-wget", "git", dnf5PluginsPkg}};
 
+    // ---- Flatpak infrastructure (injected once if any Flatpak item selected) ----
+    // Must run before ANY per-item Flatpak install step below, otherwise those
+    // steps run before the Flathub remote exists and fail to resolve.
+    const bool needFlatpak =
+        get("gaming/heroic")    || get("gaming/protonup")   ||
+        get("gaming/protonplus")||
+        get("systools/flatseal")||
+        get("content/blender")  || get("content/tenacity")  ||
+        get("comms/discord")    || get("comms/vesktop")     ||
+        get("comms/spotify")    || get("comms/thunderbird") ||
+        get("browsers/librewolf")||
+        get("python/zed")       || get("python/github_desktop");
+
+    if (needFlatpak) {
+        S << dnfStep("flatpak_pkg", "flatpak");
+        S << InstallStep{"flathub_remote", "Add Flathub remote",
+            {"/usr/bin/flatpak", "remote-add", "--if-not-exists", "--system",
+             "flathub", "https://flathub.org/repo/flathub.flatpakrepo"}};
+    }
+
     // ---- Repos ----
     if (get("repos/rpmfusion_free")) {
         S << InstallStep{"rpmfusion_free", "Enable RPM Fusion Free",
@@ -309,24 +329,6 @@ QList<InstallStep> MainWizard::buildSteps() const
                     QString("Install %1").arg(pkg),
                     {"/usr/bin/dnf", "-y", "install", pkg}};
         }
-    }
-
-    // ---- Flatpak infrastructure (injected once if any Flatpak item selected) ----
-    const bool needFlatpak =
-        get("gaming/heroic")    || get("gaming/protonup")   ||
-        get("gaming/protonplus")||
-        get("systools/flatseal")||
-        get("content/blender")  || get("content/tenacity")  ||
-        get("comms/discord")    || get("comms/vesktop")     ||
-        get("comms/spotify")    || get("comms/thunderbird") ||
-        get("browsers/librewolf")||
-        get("python/zed")       || get("python/github_desktop");
-
-    if (needFlatpak) {
-        S << dnfStep("flatpak_pkg", "flatpak");
-        S << InstallStep{"flathub_remote", "Add Flathub remote",
-            {"/usr/bin/flatpak", "remote-add", "--if-not-exists", "--system",
-             "flathub", "https://flathub.org/repo/flathub.flatpakrepo"}};
     }
 
     // ---- Gaming — RPM ----
@@ -441,6 +443,8 @@ QList<InstallStep> MainWizard::buildSteps() const
     // Blender — Flatpak, listed under content
     if (get("content/blender"))
         S << flatpakStep("flatpak_blender", "org.blender.Blender", "Blender");
+    if (get("content/tenacity"))
+        S << flatpakStep("flatpak_tenacity", "org.tenacityaudio.Tenacity", "Tenacity");
 
         // ---- CachyOS Kernel ----
     // kernel-cachyos COPR is only needed for the kernel itself.
