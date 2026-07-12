@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        1.1.2
+Version:        2.0.0
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -119,6 +119,30 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Sun Jul 12 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 2.0.0-1
+- New "LGL Tool Kit" page (LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker,
+  LGL Colour Picker, LGL Power Profile Manager), replacing the standalone SCX
+  Scheduler Tools page — scx-tools/scx-scheds now only install as a
+  prerequisite of LGL SCXCTL Manager
+- New "KineticWE" page (COPR), with an IMPORTANT notice that it obsoletes
+  stock kwin/kwin-common/kwin-libs and installs alongside the current DE
+- "Python & CLI Dev Tools" page renamed to "Development Tools"; added Zed and
+  GitHub Desktop (Flatpak)
+- tldr moved to System Tools, yt-dlp moved to Content Creation; pipx now
+  installs automatically if either is selected
+- System Tools split into CLI/GUI sections, added cmatrix, Flatseal moved in
+  from Gaming page
+- Faugus Game Launcher added to Gaming (COPR); ProtonPlus is now the primary
+  Proton tool with ProtonUp-Qt as the alternative
+- Tenacity added to Content Creation; LibreOffice Calc/Writer added to
+  Communication & Productivity; Chromium moved above Firefox on Browsers page
+- Flatpak update step added to System Update page with a Yes/No prompt
+- BIOS/UEFI virtualisation warning added to Virtualisation page
+- Fixed: Reboot Now button on Done page did nothing (silent pkexec failure)
+- Fixed: mesa-vulkan-drivers now uses mesa-vulkan-drivers-freeworld (RPM
+  Fusion) on Fedora 44+, matching mesa-va-drivers
+- New app icon; desktop file and spec icon references cleaned up
+
 * Mon Mar 30 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 1.1.2-1
 - Fedora 44 compatibility
 - Bootstrap step now installs python3-dnf5-plugins instead of dnf-plugins-core (DNF5/F43+ correction)
