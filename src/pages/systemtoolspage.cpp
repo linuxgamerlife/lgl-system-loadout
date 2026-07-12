@@ -24,6 +24,7 @@ void SystemToolsPage::initializePage()
     }
     m_boxes.clear();
 
+    const QString tu = m_wiz->targetUser();
     auto *outer = new QVBoxLayout(this);
 
     auto *toolbarWidget = new QWidget;
@@ -53,16 +54,37 @@ void SystemToolsPage::initializePage()
     auto *scroll = new SmoothScrollArea; scroll->setWidgetResizable(true); scroll->setFrameShape(QFrame::NoFrame);
     auto *inner = new QWidget; auto *layout = new QVBoxLayout(inner); layout->setSpacing(4);
 
-    const QList<std::tuple<QString,QString,QString>> items = {
+    auto addSection = [&](const QString &title) {
+        if (layout->count() > 0) layout->addSpacing(6);
+        auto *lbl = new QLabel(QString("<b>%1</b>").arg(title));
+        layout->addWidget(lbl);
+        auto *sep = new QFrame; sep->setFrameShape(QFrame::HLine);
+        layout->addWidget(sep);
+    };
+
+    const QList<std::tuple<QString,QString,QString>> cliItems = {
         {"fastfetch",     "fastfetch",     "Fast system information tool (neofetch alternative)."},
         {"btop",          "btop",          "Resource monitor with a rich terminal UI."},
         {"htop",          "htop",          "Interactive process viewer."},
-        {"distrobox",     "distrobox",     "Run other Linux distros in containers, integrated with your desktop."},
         {"xrdp",          "xrdp",          "Remote desktop protocol server."},
-        {"timeshift",     "timeshift",     "System restore and snapshot utility."},
+        {"cmatrix",       "cmatrix",       "Terminal screensaver in the style of \"The Matrix\"."},
+        {"tldr",          "tldr  (via pipx)", "Simplified man pages with quick examples. Installs pipx first if needed."},
+        {"distrobox",     "distrobox",     "Run other Linux distros in containers, integrated with your desktop."},
+    };
+    const QList<std::tuple<QString,QString,QString>> guiItems = {
+        {"timeshift",     "timeshift",           "System restore and snapshot utility."},
+        {"flatseal",      "Flatseal  (Flatpak)", "Graphical tool for managing Flatpak application permissions."},
     };
 
-    for (const auto &[key, label, desc] : items) {
+    addSection("CLI");
+    for (const auto &[key, label, desc] : cliItems) {
+        auto *cb = makeItemRow(inner, layout, label, false);
+        layout->addWidget(makeDescLabel(inner, desc)); layout->addSpacing(2);
+        m_boxes[key] = cb;
+    }
+
+    addSection("GUI");
+    for (const auto &[key, label, desc] : guiItems) {
         auto *cb = makeItemRow(inner, layout, label, false);
         layout->addWidget(makeDescLabel(inner, desc)); layout->addSpacing(2);
         m_boxes[key] = cb;
@@ -92,8 +114,11 @@ void SystemToolsPage::initializePage()
     QList<QPair<QString, std::function<bool()>>> _checks;
     for (auto it = m_boxes.constBegin(); it != m_boxes.constEnd(); ++it) {
         QString key = it.key();
+        if (key == "flatseal" || key == "tldr") continue;  // checked separately below
         _checks.append({key, [key]{ return isDnfInstalled(key); }});
     }
+    _checks.append({"flatseal", []{ return isFlatpakInstalled("com.github.tchx84.Flatseal"); }});
+    _checks.append({"tldr", [tu]{ return isPipxToolInstalled(tu, "tldr"); }});
     runChecksAsync(this, _checks, [this](QMap<QString,bool> results) {
         for (auto it = results.constBegin(); it != results.constEnd(); ++it) {
             if (!m_boxes.contains(it.key())) continue;

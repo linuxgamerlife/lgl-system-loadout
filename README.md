@@ -72,18 +72,19 @@ make -j$(nproc)
 |---|---|
 | **System Update** | Optional `dnf upgrade --refresh` before installing |
 | **Repositories** | RPM Fusion Free & NonFree |
-| **System Tools** | btop, fastfetch, distrobox, timeshift, xrdp |
+| **System Tools** | btop, fastfetch, htop, xrdp, cmatrix, tldr, distrobox, timeshift, Flatseal |
 | **System Tweaks** | Disable NetworkManager-wait-online · Clean DNF cache |
-| **Python** | pip, pipx, yt-dlp, tldr |
+| **Development Tools** | pip, pipx, Zed, GitHub Desktop |
 | **Multimedia** | ffmpeg, GStreamer plugins, VLC |
-| **Content Creation** | OBS Studio, Kdenlive, GIMP, Inkscape, Audacity, Blender |
+| **Content Creation** | OBS Studio, Kdenlive, GIMP, Inkscape, Audacity, Tenacity, Blender, yt-dlp |
 | **GPU Drivers** | AMD (Mesa, Vulkan, VA-API) |
-| **Gaming** | Steam, Lutris, Wine, Protontricks, MangoHud, vkBasalt, GOverlay, Controller Support, Heroic, ProtonUp-Qt, ProtonPlus, Flatseal |
+| **Gaming** | Steam, Lutris, Wine, Protontricks, MangoHud, vkBasalt, GOverlay, Controller Support, Heroic, Faugus, ProtonPlus, ProtonUp-Qt |
 | **Virtualisation** | virt-manager, libvirt |
-| **Browsers** | Firefox, Chromium, Chrome, Brave, Vivaldi, LibreWolf |
-| **Communication** | Thunderbird, Discord, Vesktop, Spotify |
+| **Browsers** | Chromium, Firefox, Chrome, Brave, Vivaldi, LibreWolf |
+| **Communication & Productivity** | LibreOffice Calc, LibreOffice Writer, Thunderbird, Discord, Vesktop, Spotify |
 | **CachyOS Kernel** | kernel-cachyos, kernel-cachyos-devel-matched |
-| **SCX Scheduler Tools** | scx-scheds, scx-manager, scx-tools |
+| **LGL Tool Kit** | LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker, LGL Colour Picker, LGL Power Profile Manager |
+| **KineticWE** | Tiling KWin Wayland compositor — obsoletes stock KWin, see in-app warning |
 
 ---
 

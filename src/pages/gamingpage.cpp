@@ -81,9 +81,9 @@ void GamingPage::initializePage()
     };
     const QList<Item> flatpakItems = {
         {"heroic",    "Heroic Games Launcher", "Open-source launcher for Epic Games Store and GOG.",             "heroic-games-launcher-bin"},
-        {"protonup",  "ProtonUp-Qt  (Flatpak)",           "GUI for managing Proton-GE and other compatibility tool versions.", "net.davidotek.pupgui2"},
-        {"protonplus","ProtonPlus  (Flatpak)",            "Alternative tool for managing Proton versions.",                   "com.vysp3r.ProtonPlus"},
-        {"flatseal",  "Flatseal  (Flatpak)",              "Graphical tool for managing Flatpak application permissions.",     "com.github.tchx84.Flatseal"},
+        {"protonplus","ProtonPlus  (Flatpak)",            "GUI for managing Proton-GE, Wine-GE, and other compatibility tool versions.", "com.vysp3r.ProtonPlus"},
+        {"protonup",  "ProtonUp-Qt  (Flatpak)",           "Alternative GUI for managing Proton-GE and other compatibility tool versions.", "net.davidotek.pupgui2"},
+        {"faugus",    "Faugus Game Launcher",  "Simple launcher for running Windows games via Wine/Proton outside of Steam.", "faugus-launcher"},
     };
 
     // Build sections with placeholder badges (shown while async checks run)
@@ -94,7 +94,7 @@ void GamingPage::initializePage()
         m_boxes[it.key] = cb;
     }
     addSection("Game Launchers");
-    for (const auto &it : QList<Item>{dnfItems[1], dnfItems[2], flatpakItems[0]}) {
+    for (const auto &it : QList<Item>{dnfItems[1], flatpakItems[3], dnfItems[2], flatpakItems[0]}) {
         auto *cb = makeItemRow(inner, layout, it.label, false);
         layout->addWidget(makeDescLabel(inner, it.desc)); layout->addSpacing(2);
         m_boxes[it.key] = cb;
@@ -117,13 +117,6 @@ void GamingPage::initializePage()
         layout->addWidget(makeDescLabel(inner, it.desc)); layout->addSpacing(2);
         m_boxes[it.key] = cb;
     }
-    addSection("Flatpak Utilities");
-    for (const auto &it : QList<Item>{flatpakItems[3]}) {
-        auto *cb = makeItemRow(inner, layout, it.label, false);
-        layout->addWidget(makeDescLabel(inner, it.desc)); layout->addSpacing(2);
-        m_boxes[it.key] = cb;
-    }
-
     auto *note = new QLabel(
         "<i>Flatpak and the Flathub remote will be configured automatically "
         "if any Flatpak item is selected here or elsewhere in this wizard.</i>"
@@ -143,9 +136,9 @@ void GamingPage::initializePage()
         checks.append({it.key, [key=it.key]{ return isDnfInstalled(key); }});
     }
     checks.append({"heroic",     []{ return isDnfInstalled("heroic-games-launcher-bin"); }});
-    checks.append({"protonup",   []{ return isFlatpakInstalled("net.davidotek.pupgui2"); }});
     checks.append({"protonplus", []{ return isFlatpakInstalled("com.vysp3r.ProtonPlus"); }});
-    checks.append({"flatseal",   []{ return isFlatpakInstalled("com.github.tchx84.Flatseal"); }});
+    checks.append({"protonup",   []{ return isFlatpakInstalled("net.davidotek.pupgui2"); }});
+    checks.append({"faugus",     []{ return isDnfInstalled("faugus-launcher"); }});
 
     runChecksAsync(this, checks, [this](QMap<QString,bool> results) {
         for (auto it = results.constBegin(); it != results.constEnd(); ++it) {

@@ -24,6 +24,7 @@ void ContentPage::initializePage()
     }
     m_boxes.clear();
 
+    const QString tu = m_wiz->targetUser();
     auto *outer = new QVBoxLayout(this);
     auto *toolbarWidget = new QWidget;
     auto *toolbar = new QHBoxLayout(toolbarWidget);
@@ -64,11 +65,18 @@ void ContentPage::initializePage()
     addItem("inkscape", "Inkscape",            "Professional vector graphics editor.",                       false);
     addItem("audacity", "Audacity",            "Multi-track audio editor and recorder.",                     false);
 
+    auto *sepPipx = new QFrame; sepPipx->setFrameShape(QFrame::HLine); layout->addWidget(sepPipx);
+    auto *notePipx = new QLabel("<i>The following is installed via pipx. pipx will be installed first if needed.</i>");
+    notePipx->setWordWrap(true); layout->addWidget(notePipx); layout->addSpacing(4);
+
+    addItem("ytdlp", "yt-dlp  (via pipx)", "Feature-rich audio/video downloader.", false);
+
     auto *sep = new QFrame; sep->setFrameShape(QFrame::HLine); layout->addWidget(sep);
     auto *note = new QLabel("<i>The following are installed via Flatpak from Flathub.</i>");
     note->setWordWrap(true); layout->addWidget(note); layout->addSpacing(4);
 
-    addItem("blender",  "Blender  (Flatpak)", "Free and open-source 3D creation suite.", false);
+    addItem("blender",  "Blender  (Flatpak)",  "Free and open-source 3D creation suite.",             false);
+    addItem("tenacity", "Tenacity  (Flatpak)", "Community-driven, privacy-focused fork of Audacity.", false);
 
     layout->addStretch();
     scroll->setWidget(inner);
@@ -80,7 +88,9 @@ void ContentPage::initializePage()
     _checks.append({"gimp", []{ return isDnfInstalled("gimp"); }});
     _checks.append({"inkscape", []{ return isDnfInstalled("inkscape"); }});
     _checks.append({"audacity", []{ return isDnfInstalled("audacity"); }});
+    _checks.append({"ytdlp", [tu]{ return isPipxToolInstalled(tu, "yt-dlp"); }});
     _checks.append({"blender", []{ return isFlatpakInstalled("org.blender.Blender"); }});
+    _checks.append({"tenacity", []{ return isFlatpakInstalled("org.tenacityaudio.Tenacity"); }});
     runChecksAsync(this, _checks, [this](QMap<QString,bool> results) {
         for (auto it = results.constBegin(); it != results.constEnd(); ++it) {
             if (!m_boxes.contains(it.key())) continue;

@@ -7,20 +7,14 @@
 #include <QLabel>
 #include <QFrame>
 #include <QPushButton>
+#include <QLineEdit>
+#include <QFont>
 #include <QApplication>
-#include <QProcess>
-
-static bool isPipxToolInstalled(const QString &user, const QString &tool) {
-    QProcess p;
-    p.start("sudo", {"-u", user, "pipx", "list", "--short"});
-    if (!p.waitForFinished(5000)) { p.kill(); return false; }
-    return QString::fromUtf8(p.readAllStandardOutput()).contains(tool);
-}
 
 PythonPage::PythonPage(MainWizard *wizard) : QWizardPage(wizard), m_wiz(wizard)
 {
-    setTitle("Python & CLI Dev Tools");
-    setSubTitle("Python runtime, package managers, and useful command-line utilities installed via pipx.");
+    setTitle("Development Tools");
+    setSubTitle("Python runtime, package managers, editors, and useful command-line utilities.");
 }
 
 void PythonPage::initializePage()
@@ -69,12 +63,39 @@ void PythonPage::initializePage()
     addItem("pip",     "python3-pip",   "pip - the Python package installer.",                false);
     addItem("pipx",    "pipx",          "Installs Python CLI apps in isolated environments.", false);
 
-    auto *sep = new QFrame; sep->setFrameShape(QFrame::HLine); layout->addWidget(sep);
-    auto *note = new QLabel("<i>The following are installed via pipx into the target user's environment.</i>");
-    note->setWordWrap(true); layout->addWidget(note); layout->addSpacing(4);
+    auto *sep2 = new QFrame; sep2->setFrameShape(QFrame::HLine); layout->addWidget(sep2);
+    auto *note2 = new QLabel("<i>The following are installed as Flatpaks from Flathub.</i>");
+    note2->setWordWrap(true); layout->addWidget(note2); layout->addSpacing(4);
 
-    addItem("tldr",  "tldr  (via pipx)",   "Simplified man pages with quick examples.", isPipxToolInstalled(tu, "tldr"));
-    addItem("ytdlp", "yt-dlp  (via pipx)", "Feature-rich audio/video downloader.",      isPipxToolInstalled(tu, "yt-dlp"));
+    addItem("zed",            "Zed  (Flatpak)",            "Fast, collaborative code editor.",         false);
+    auto *zedNote = new QLabel(
+        "<span style='color:#cc7700;'>The flatpak is not as up to date as the one on their site. "
+        "To install that, run the command below in a terminal. "
+        "You will need to keep this updated in-app, and it will not be updated the usual way.</span>"
+    );
+    zedNote->setWordWrap(true);
+    layout->addWidget(zedNote);
+
+    auto *zedCmdWidget = new QWidget;
+    auto *zedCmdLayout = new QHBoxLayout(zedCmdWidget);
+    zedCmdLayout->setContentsMargins(0, 0, 0, 0);
+    const QString zedCmd = "curl -f https://zed.dev/install.sh | sh";
+    auto *zedCmdEdit = new QLineEdit(zedCmd);
+    zedCmdEdit->setReadOnly(true);
+    zedCmdEdit->setFont(QFont("monospace"));
+    auto *zedCopyBtn = new QPushButton("Copy");
+    connect(zedCopyBtn, &QPushButton::clicked, this, [zedCmd] { copyToClipboard(zedCmd); });
+    zedCmdLayout->addWidget(zedCmdEdit, 1);
+    zedCmdLayout->addWidget(zedCopyBtn);
+    layout->addWidget(zedCmdWidget);
+
+    auto *zedDevNote = new QLabel;
+    zedDevNote->setWordWrap(true);
+    zedDevNote->setVisible(false);
+    layout->addWidget(zedDevNote);
+    layout->addSpacing(4);
+
+    addItem("github_desktop", "GitHub Desktop  (Flatpak)", "Graphical client for managing GitHub repositories.", false);
 
     layout->addStretch();
     outer->addWidget(inner);
@@ -82,7 +103,10 @@ void PythonPage::initializePage()
     QList<QPair<QString, std::function<bool()>>> _checks;
     _checks.append({"pip", []{ return isDnfInstalled("python3-pip"); }});
     _checks.append({"pipx", []{ return isDnfInstalled("pipx"); }});
-    runChecksAsync(this, _checks, [this](QMap<QString,bool> results) {
+    _checks.append({"zed", []{ return isFlatpakInstalled("dev.zed.Zed"); }});
+    _checks.append({"zed_dev", [tu]{ return isZedDevInstalled(tu); }});
+    _checks.append({"github_desktop", []{ return isFlatpakInstalled("io.github.shiftey.Desktop"); }});
+    runChecksAsync(this, _checks, [this, zedDevNote](QMap<QString,bool> results) {
         for (auto it = results.constBegin(); it != results.constEnd(); ++it) {
             if (!m_boxes.contains(it.key())) continue;
             auto *row = m_boxes[it.key()]->parentWidget();
@@ -93,6 +117,13 @@ void PythonPage::initializePage()
             lbl->setStyleSheet(it.value()
                 ? "color: #3db03d; font-weight: bold; font-size: 8pt;"
                 : "color: #cc7700; font-weight: bold; font-size: 8pt;");
+        }
+        if (results.value("zed_dev", false)) {
+            zedDevNote->setText(
+                "<span style='color:#3db03d;'>✓ The dev-site version of Zed is installed "
+                "(~/.local/bin/zed).</span>"
+            );
+            zedDevNote->setVisible(true);
         }
         if (m_checkingLabel) m_checkingLabel->setVisible(false);
     });

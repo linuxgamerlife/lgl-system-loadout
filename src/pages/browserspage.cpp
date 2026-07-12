@@ -61,8 +61,8 @@ void BrowsersPage::initializePage()
     };
 
     addSection("From Fedora Repos");
-    addItem("firefox",  "Firefox",  "Mozilla Firefox - ships with Fedora.",               false);
     addItem("chromium", "Chromium", "Open-source Chrome base. No Google account required.", false);
+    addItem("firefox",  "Firefox",  "Mozilla Firefox - ships with Fedora.",               false);
 
     addSection("Third-Party (repo added automatically)");
     addItem("chrome",  "Google Chrome", "Full Chrome with Widevine DRM and Google sync.",  false);

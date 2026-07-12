@@ -99,11 +99,16 @@ void GpuPage::initializePage()
         const QString mesaVaDesc = (m_wiz->fedoraVersion().toInt() >= 44)
                                   ? "VA-API driver for AMD (RPM Fusion) - GPU-accelerated video decode in VLC, Firefox, mpv, OBS."
                                   : "VA-API driver for AMD - GPU-accelerated video decode in VLC, Firefox, mpv, OBS.";
+        // mesa-vulkan-drivers was replaced by mesa-vulkan-drivers-freeworld (RPM Fusion) in Fedora 44.
+        const QString mesaVulkanPkg = (m_wiz->fedoraVersion().toInt() >= 44)
+                                  ? "mesa-vulkan-drivers-freeworld" : "mesa-vulkan-drivers";
+        const QString mesaVulkanDesc = (m_wiz->fedoraVersion().toInt() >= 44)
+                                  ? "Mesa Vulkan drivers (RADV, RPM Fusion) - AMD open-source Vulkan. Required for DXVK and VKD3D-Proton."
+                                  : "Mesa Vulkan drivers (RADV) - AMD open-source Vulkan. Required for DXVK and VKD3D-Proton.";
         const QList<std::tuple<QString,QString,QString>> amdItems = {
             {"mesa_dri",      "mesa-dri-drivers",
              "Core Mesa DRI drivers - provides OpenGL support for AMD GPUs. Essential."},
-            {"mesa_vulkan",   "mesa-vulkan-drivers",
-             "Mesa Vulkan drivers (RADV) - AMD open-source Vulkan. Required for DXVK and VKD3D-Proton."},
+            {"mesa_vulkan",   mesaVulkanPkg, mesaVulkanDesc},
             {"vulkan_loader", "vulkan-loader",
              "Vulkan ICD loader - connects applications to the Vulkan driver."},
             {"mesa_va",       mesaVaPkg, mesaVaDesc},
@@ -168,9 +173,11 @@ void GpuPage::initializePage()
     // Run AMD install checks concurrently - must use actual package names, not map keys
     const QString mesaVaCheckPkg = (m_wiz->fedoraVersion().toInt() >= 44)
                                    ? "mesa-va-drivers-freeworld" : "mesa-va-drivers";
+    const QString mesaVulkanCheckPkg = (m_wiz->fedoraVersion().toInt() >= 44)
+                                   ? "mesa-vulkan-drivers-freeworld" : "mesa-vulkan-drivers";
     const QMap<QString,QString> amdPkgNames = {
         {"mesa_dri",      "mesa-dri-drivers"},
-        {"mesa_vulkan",   "mesa-vulkan-drivers"},
+        {"mesa_vulkan",   mesaVulkanCheckPkg},
         {"vulkan_loader", "vulkan-loader"},
         {"mesa_va",       mesaVaCheckPkg},
         {"linux_fw",      "linux-firmware"},

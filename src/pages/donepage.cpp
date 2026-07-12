@@ -1,16 +1,15 @@
 #include "donepage.h"
 #include "../mainwizard.h"
+#include "../pagehelpers.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QProcess>
-#include <QClipboard>
-#include <QMimeData>
-#include <QApplication>
 #include <QFrame>
 #include <QFont>
 #include <QPushButton>
+#include <QMessageBox>
 
 DonePage::DonePage(MainWizard *wizard) : QWizardPage(wizard), m_wiz(wizard)
 {
@@ -50,12 +49,10 @@ DonePage::DonePage(MainWizard *wizard) : QWizardPage(wizard), m_wiz(wizard)
     connect(m_copyLogBtn, &QPushButton::clicked, this, &DonePage::copyFullLogToClipboard);
     btnLayout->addWidget(m_copyLogBtn);
 
-    auto *rebootBtn = new QPushButton("Reboot Now");
-    connect(rebootBtn, &QPushButton::clicked, []() {
-        QProcess::startDetached("pkexec", {"/usr/bin/systemctl", "reboot"});
-    });
+    m_rebootBtn = new QPushButton("Reboot Now");
+    connect(m_rebootBtn, &QPushButton::clicked, this, &DonePage::rebootNow);
     btnLayout->addStretch();
-    btnLayout->addWidget(rebootBtn);
+    btnLayout->addWidget(m_rebootBtn);
 
     layout->addLayout(btnLayout);
 }
@@ -70,7 +67,7 @@ void DonePage::initializePage()
         m_summaryLabel->setText(
             "<p><b>All selected packages and tools have been installed.</b></p>"
             "<p>A reboot is recommended to ensure all changes take effect, "
-            "especially if the CachyOS kernel, GPU drivers, or virtualisation packages were installed.</p>"
+            "especially if the CachyOS kernel, GPU drivers, virtualisation packages, or KineticWE were installed.</p>"
         );
         m_errorDetail->hide();
         m_copyErrorsBtn->hide();
@@ -90,20 +87,6 @@ void DonePage::initializePage()
     }
 }
 
-static void copyToClipboard(const QString &text)
-{
-    // Use QMimeData for reliable Wayland clipboard support.
-    auto *md = new QMimeData;
-    md->setText(text);
-    QApplication::clipboard()->setMimeData(md, QClipboard::Clipboard);
-    // Also set Selection mode for middle-click paste on X11.
-    if (QApplication::clipboard()->supportsSelection()) {
-        auto *mdSel = new QMimeData;
-        mdSel->setText(text);
-        QApplication::clipboard()->setMimeData(mdSel, QClipboard::Selection);
-    }
-}
-
 void DonePage::copyErrorsToClipboard()
 {
     copyToClipboard(m_wiz->getOpt("install/failedSteps", QString()).toString());
@@ -112,4 +95,14 @@ void DonePage::copyErrorsToClipboard()
 void DonePage::copyFullLogToClipboard()
 {
     copyToClipboard(m_wiz->getOpt("install/fullLog", QString()).toString());
+}
+
+void DonePage::rebootNow()
+{
+    auto reply = QMessageBox::question(this, "Reboot",
+        "Please save any open files before rebooting.\n\n"
+        "Reboot now?",
+        QMessageBox::Yes | QMessageBox::Cancel);
+    if (reply == QMessageBox::Yes)
+        QProcess::startDetached("pkexec", {"/usr/bin/systemctl", "reboot"});
 }

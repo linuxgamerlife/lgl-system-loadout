@@ -70,6 +70,7 @@ const QList<AllowedOp> &allowList()
         { "/usr/bin/flatpak", { fixed("remote-add"), fixed("--if-not-exists"),
                                 fixed("--system"), fixed("flathub"),
                                 fixed("https://flathub.org/repo/flathub.flatpakrepo") } },
+        { "/usr/bin/flatpak", { fixed("update"), fixed("-y"), fixed("--system") } },
 
         // --- rpm (used for bootstrap already-installed check) ---------------
         { "/usr/bin/rpm", { fixed("-q"), fixed("--quiet"), rule("package") }, true /* variadic packages */ },

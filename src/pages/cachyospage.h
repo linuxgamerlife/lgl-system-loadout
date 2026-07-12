@@ -11,7 +11,7 @@ public:
     explicit CachyOSPage(MainWizard *wizard);
     void initializePage() override;
     bool validatePage() override;
-    int  nextId() const override { return PAGE_SCX; }
+    int  nextId() const override { return PAGE_TOOLKIT; }
 private:
     MainWizard               *m_wiz;
     QMap<QString, QCheckBox*> m_boxes;

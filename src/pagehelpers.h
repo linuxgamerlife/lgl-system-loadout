@@ -14,6 +14,23 @@
 #include <QThread>
 #include <QFutureWatcher>
 #include <QtConcurrent/QtConcurrent>
+#include <QApplication>
+#include <QClipboard>
+#include <QMimeData>
+
+// Copies text to the clipboard, setting both Clipboard and Selection modes
+// for reliable behaviour across Wayland and X11.
+inline void copyToClipboard(const QString &text)
+{
+    auto *md = new QMimeData;
+    md->setText(text);
+    QApplication::clipboard()->setMimeData(md, QClipboard::Clipboard);
+    if (QApplication::clipboard()->supportsSelection()) {
+        auto *mdSel = new QMimeData;
+        mdSel->setText(text);
+        QApplication::clipboard()->setMimeData(mdSel, QClipboard::Selection);
+    }
+}
 
 // ---- Smooth scrolling QScrollArea ----
 // Fixes mouse wheel scroll being intercepted by the wizard navigation.
@@ -112,6 +129,14 @@ inline bool isFlatpakInstalled(const QString &appId)
     return p.exitCode() == 0;
 }
 
+inline bool isPipxToolInstalled(const QString &user, const QString &tool)
+{
+    QProcess p;
+    p.start("sudo", {"-u", user, "pipx", "list", "--short"});
+    if (!p.waitForFinished(5000)) { p.kill(); return false; }
+    return QString::fromUtf8(p.readAllStandardOutput()).contains(tool);
+}
+
 // OpenH264 support removed
 inline bool isOpenH264Enabled() { return false; }
 
@@ -124,6 +149,14 @@ inline bool isKwinScriptInstalled(const QString &name, const QString &user)
                 "sudo -u %1 kpackagetool6 --type KWin/Script --show %2 2>/dev/null")
         .arg(user, name)});
     if (!p.waitForFinished(8000)) { p.kill(); return false; }
+    return p.exitCode() == 0;
+}
+
+inline bool isZedDevInstalled(const QString &user)
+{
+    QProcess p;
+    p.start("bash", {"-c", QString("[ -x /home/%1/.local/bin/zed ]").arg(user)});
+    if (!p.waitForFinished(3000)) { p.kill(); return false; }
     return p.exitCode() == 0;
 }
 
