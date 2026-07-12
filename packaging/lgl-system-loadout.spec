@@ -5,9 +5,8 @@ Summary:        Guided setup wizard for Fedora — gaming, content creation, and
 
 License:        MIT
 URL:            https://github.com/linuxgamerlife/lgl-system-loadout
-Source0:        https://github.com/linuxgamerlife/lgl-system-loadout/releases/download/v%{version}/%{name}-%{version}.zip
+Source0:        https://github.com/linuxgamerlife/lgl-system-loadout/archive/refs/tags/v%{version}.tar.gz
 BuildRequires:  cmake >= 3.16
-BuildRequires:  unzip
 BuildRequires:  gcc-c++
 BuildRequires:  qt6-qtbase-devel
 # Runtime dependencies
@@ -27,9 +26,7 @@ installed before you commit. One password prompt covers the entire
 installation.
 
 %prep
-cd %{_builddir}
-unzip -q %{SOURCE0}
-%setup -q -n lgl-system-loadout -D -T
+%autosetup
 
 %build
 mkdir -p build
