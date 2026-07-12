@@ -2,6 +2,37 @@
 
 ---
 
+## [2.0.0] — 2026-07-12
+
+### Added
+- **LGL Tool Kit page** — LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker, LGL Colour Picker, LGL Power Profile Manager, all installed via their own COPR repos
+- **KineticWE page** — tiling KWin Wayland compositor via COPR, with an IMPORTANT notice that it obsoletes stock `kwin`/`kwin-common`/`kwin-libs` and installs alongside your current desktop environment
+- BIOS/UEFI virtualisation warning on the Virtualisation page
+- Zed and GitHub Desktop added to Development Tools (Flatpak) — Zed includes a copy-pasteable official install command and detects a dev-site (`~/.local/bin/zed`) install separately from the Flatpak
+- Faugus Game Launcher added to Gaming (COPR)
+- Tenacity added to Content Creation (Flatpak, Audacity fork)
+- LibreOffice Calc and Writer added to Communication & Productivity
+- cmatrix added to System Tools
+- Flatpak update step added to the System Update page, with a Yes/No prompt before running it
+
+### Changed
+- "Python & CLI Dev Tools" page renamed to "Development Tools"
+- tldr moved to System Tools (CLI section); yt-dlp moved to Content Creation — pipx now installs automatically if either is selected, even without its own checkbox
+- System Tools split into CLI and GUI sections; Flatseal moved here from the Gaming page
+- ProtonPlus is now the primary Proton management tool, with ProtonUp-Qt as the alternative
+- Chromium moved above Firefox on the Browsers page
+- Removed the standalone "SCX Scheduler Tools" page — `scx-tools`/`scx-scheds` are now only installed as a prerequisite of LGL SCXCTL Manager
+- Default window size increased to 1100x1000
+- App icon regenerated at all sizes; desktop file and spec icon references cleaned up
+
+### Fixed
+- Reboot Now button on the Done page did nothing due to a silent `pkexec` failure
+- `mesa-vulkan-drivers` now correctly uses the RPM Fusion `mesa-vulkan-drivers-freeworld` variant on Fedora 44+, matching `mesa-va-drivers`
+- Newly added Flatpak items were not wired into the Flatpak-infrastructure/disk-estimate checks
+- Removed a dead CMake test target referencing a deleted test file
+
+---
+
 ## [1.1.2] — 2026-03-30
 
 ### Changed

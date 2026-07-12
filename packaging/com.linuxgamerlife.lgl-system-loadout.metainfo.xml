@@ -55,6 +55,21 @@
   </requires>
 
   <releases>
+    <release version="2.0.0" date="2026-07-12">
+      <description>
+        <p>LGL Tool Kit, KineticWE, and a reorganised Development Tools / Gaming / System Tools layout.</p>
+        <ul>
+          <li>New "LGL Tool Kit" page — LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker, LGL Colour Picker, LGL Power Profile Manager, replacing the standalone SCX Scheduler Tools page</li>
+          <li>New "KineticWE" page (COPR), with an IMPORTANT notice about it obsoleting stock KWin packages</li>
+          <li>"Python & CLI Dev Tools" page renamed to "Development Tools"; added Zed and GitHub Desktop</li>
+          <li>tldr moved to System Tools, yt-dlp moved to Content Creation</li>
+          <li>System Tools split into CLI/GUI sections; Faugus Game Launcher added to Gaming; Tenacity and LibreOffice added</li>
+          <li>Flatpak update step added to System Update page</li>
+          <li>Fixed Reboot Now button on Done page doing nothing on failure</li>
+          <li>Fixed mesa-vulkan-drivers to use the RPM Fusion freeworld variant on Fedora 44+</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.1.2" date="2026-03-30">
       <description>
         <p>Fedora 44 compatibility.</p>
