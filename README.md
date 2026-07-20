@@ -1,6 +1,6 @@
 <div align="center">
 
-# The LGL System Loadout
+# LGL System Loadout
 
 **Get a fresh Fedora install ready for gaming, content creation, and development — without the terminal.**
 
