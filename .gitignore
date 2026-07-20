@@ -1,1 +1,6 @@
 MEMORY.md
+build*/
+*.o
+*.so
+CMakeCache.txt
+CMakeFiles/
