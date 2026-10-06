@@ -87,6 +87,7 @@ const QList<AllowedOp> &allowList()
 
         // --- usermod -------------------------------------------------------
         { "/usr/sbin/usermod", { fixed("-aG"), fixed("libvirt"), rule("username") } },
+        { "/usr/sbin/usermod", { fixed("-aG"), fixed("kvm"), rule("username") } },
 
         // --- kpackagetool6 -------------------------------------------------
         { "/usr/bin/kpackagetool6", { fixed("--type"), fixed("kwin/script"),

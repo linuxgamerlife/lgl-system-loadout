@@ -369,9 +369,10 @@ QList<InstallStep> MainWizard::buildSteps() const
     }
 
     // ---- Virtualisation ----
-    const bool anyVirt = get("virt/virtmanager") || get("virt/libvirt") ||
-                         get("virt/virt_install") || get("virt/virt_viewer") ||
-                         get("virt/vmcurator");
+    // Only tools backed by libvirt need its daemon and group.  virt-viewer is
+    // a standalone client, while VM Curator launches QEMU directly.
+    const bool needsLibvirt = get("virt/virtmanager") || get("virt/libvirt") ||
+                              get("virt/virt_install");
     for (const auto &[key, pkg] : QList<QPair<QString,QString>>{
             {"virtmanager",  "virt-manager"},
             {"libvirt",      "libvirt"},
@@ -384,9 +385,21 @@ QList<InstallStep> MainWizard::buildSteps() const
     if (get("virt/vmcurator")) {
         S << InstallStep{"virt_vmcurator_copr", "Enable VM Curator COPR",
             {"/usr/bin/dnf", "copr", "enable", "-y", "linuxgamerlife/lgl-vm-curator"}};
-        S << dnfStep("virt_vmcurator_install", "vm-curator");
+        // The VM Curator RPM provides its core QEMU dependencies.  Install the
+        // Fedora packages needed by its common UEFI, SPICE, TPM, passt and
+        // managed-network features as an explicit runtime bundle.
+        S << InstallStep{"virt_vmcurator_install", "Install VM Curator and runtime support",
+            {"/usr/bin/dnf", "-y", "install", "vm-curator", "edk2-ovmf",
+             "virt-viewer", "passt", "swtpm", "dnsmasq", "iproute", "nftables"},
+            /*optional=*/false,
+            /*alreadyInstalledCheck=*/{"/usr/bin/rpm", "-q", "--quiet",
+                "vm-curator", "edk2-ovmf", "virt-viewer", "passt", "swtpm", "dnsmasq",
+                "iproute", "nftables"}};
+        S << InstallStep{"kvm_group",
+            QString("Add %1 to kvm group").arg(tu),
+            {"/usr/sbin/usermod", "-aG", "kvm", tu}};
     }
-    if (anyVirt) {
+    if (needsLibvirt) {
         S << InstallStep{"libvirtd_enable", "Enable libvirtd service",
             {"/usr/bin/systemctl", "enable", "--now", "libvirtd"}};
         S << InstallStep{"libvirt_group",
@@ -679,7 +692,7 @@ int MainWizard::estimateDiskMB() const
 
     if (get("virt/virtmanager"))  mb += 30;
     if (get("virt/libvirt"))      mb += 50;
-    if (get("virt/vmcurator"))    mb += 20;
+    if (get("virt/vmcurator"))    mb += 300; // includes QEMU and common runtime support
 
     if (get("browsers/firefox"))   mb += 250;
     if (get("browsers/chromium"))  mb += 300;

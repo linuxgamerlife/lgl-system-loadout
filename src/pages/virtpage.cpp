@@ -71,7 +71,7 @@ void VirtPage::initializePage()
         {"libvirt",      "libvirt",       "Virtualisation API and daemon.",                                "libvirt"},
         {"virt_install", "virt-install",  "Command-line tool for creating new virtual machines.",          "virt-install"},
         {"virt_viewer",  "virt-viewer",   "Lightweight viewer for VM consoles via SPICE or VNC.",          "virt-viewer"},
-        {"vmcurator",    "VM Curator  (COPR)", "LinuxGamerLife's fork of VM Curator - a fast, friendly TUI for building and managing QEMU/KVM virtual machines with working 3D acceleration.", "vm-curator"},
+        {"vmcurator",    "VM Curator  (COPR)", "LinuxGamerLife's fork of VM Curator - a fast, friendly TUI for building and managing QEMU/KVM virtual machines with working 3D acceleration. Includes UEFI, SPICE viewer, virtual TPM, passt networking, and managed-network support.", "vm-curator"},
     };
 
     for (const auto &[key, label, desc, pkg] : items) {
@@ -83,11 +83,11 @@ void VirtPage::initializePage()
     auto *noteBox = new QFrame; noteBox->setFrameShape(QFrame::StyledPanel);
     auto *noteLayout = new QVBoxLayout(noteBox);
     auto *noteLabel = new QLabel(QString(
-        "<b>Note:</b> If any virtualisation package is selected, the following will happen automatically:<br>"
-        "&bull; <tt>libvirtd</tt> service will be enabled and started<br>"
-        "&bull; User <tt>%1</tt> will be added to the <tt>libvirt</tt> group<br>"
-        "A reboot (or re-login) is required for group membership to take effect.<br><br>"
-        "<i>qemu-kvm, edk2-ovmf, swtpm, and libvirt daemon components are pulled in automatically as dependencies of virt-manager.</i>"
+        "<b>Automatic setup:</b><br>"
+        "&bull; virt-manager, libvirt, and virt-install enable <tt>libvirtd</tt> and add user <tt>%1</tt> to the <tt>libvirt</tt> group.<br>"
+        "&bull; VM Curator installs its common runtime support and adds user <tt>%1</tt> to the <tt>kvm</tt> group. It does not require libvirt.<br>"
+        "&bull; virt-viewer installs independently and does not start a local virtualisation service.<br><br>"
+        "A logout and login (or reboot) is required for new group membership to take effect."
     ).arg(m_wiz->targetUser()));
     noteLabel->setWordWrap(true);
     noteLayout->addWidget(noteLabel);

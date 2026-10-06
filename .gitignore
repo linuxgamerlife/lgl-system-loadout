@@ -1,5 +1,6 @@
 MEMORY.md
 build*/
+dist/
 *.o
 *.so
 CMakeCache.txt

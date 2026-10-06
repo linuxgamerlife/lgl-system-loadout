@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        2.1.0
+Version:        2.1.1
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -116,6 +116,12 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Tue Oct 06 2026 LinuxGamerLife - 2.1.1-1
+- Fixed standalone VM Curator installation by adding its common Fedora runtime
+  support and the target user to the kvm group
+- Limited libvirt service and group setup to libvirt-based tools
+- Stopped virt-viewer-only installations from enabling the local libvirt daemon
+
 * Sun Sep 13 2026 LinuxGamerLife - 2.1.0-1
 - Added Microsoft Edge and Helium to Browsers
 - Added cbonsai and podman to System Tools

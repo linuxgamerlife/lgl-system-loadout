@@ -55,6 +55,16 @@
   </requires>
 
   <releases>
+    <release version="2.1.1" date="2026-10-06">
+      <description>
+        <p>Virtualisation setup fixes.</p>
+        <ul>
+          <li>VM Curator now installs its common Fedora runtime support and adds the target user to the kvm group</li>
+          <li>Libvirt setup now runs only when a libvirt-based tool is selected</li>
+          <li>Installing virt-viewer alone no longer enables the local libvirt daemon</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.1.0" date="2026-09-13">
       <description>
         <p>New tools, and KineticWE removed.</p>
@@ -100,7 +110,7 @@
         <ul>
           <li>New "LGL Tool Kit" page — LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker, LGL Colour Picker, LGL Power Profile Manager, replacing the standalone SCX Scheduler Tools page</li>
           <li>New "KineticWE" page (COPR), with an IMPORTANT notice about it obsoleting stock KWin packages</li>
-          <li>"Python & CLI Dev Tools" page renamed to "Development Tools"; added Zed and GitHub Desktop</li>
+          <li>"Python &amp; CLI Dev Tools" page renamed to "Development Tools"; added Zed and GitHub Desktop</li>
           <li>tldr moved to System Tools, yt-dlp moved to Content Creation</li>
           <li>System Tools split into CLI/GUI sections; Faugus Game Launcher added to Gaming; Tenacity and LibreOffice added</li>
           <li>Flatpak update step added to System Update page</li>

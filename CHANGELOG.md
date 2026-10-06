@@ -2,6 +2,12 @@
 
 ---
 
+## [2.1.1] — 2026-10-06
+
+### Fixed
+- VM Curator can now be installed on its own: its common Fedora runtime support is installed explicitly, the target user is added to the `kvm` group, and unrelated libvirt setup is no longer run
+- Selecting virt-viewer alone no longer enables the local libvirt daemon or changes libvirt group membership
+
 ## [2.1.0] — 2026-09-13
 
 ### Added
