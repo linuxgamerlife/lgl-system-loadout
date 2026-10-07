@@ -2,6 +2,12 @@
 
 ---
 
+## [2.1.2] — 2026-10-07
+
+### Fixed
+- Selecting virt-manager or virt-install now installs Fedora's local libvirt QEMU runtime before enabling libvirtd or adding the target user to the libvirt group
+- VM Curator now installs QEMU's SDL display module so SDL-configured VMs can launch
+
 ## [2.1.1] — 2026-10-06
 
 ### Fixed

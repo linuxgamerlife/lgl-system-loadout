@@ -373,6 +373,17 @@ QList<InstallStep> MainWizard::buildSteps() const
     // a standalone client, while VM Curator launches QEMU directly.
     const bool needsLibvirt = get("virt/virtmanager") || get("virt/libvirt") ||
                               get("virt/virt_install");
+    if (needsLibvirt) {
+        // virt-manager and virt-install are clients and do not guarantee that
+        // Fedora's local QEMU driver is present.  The daemon package also owns
+        // libvirtd.service and pulls in libvirt-daemon-common, whose sysusers
+        // file creates the libvirt group used below.
+        S << InstallStep{"virt_libvirt_runtime", "Install local libvirt QEMU runtime",
+            {"/usr/bin/dnf", "-y", "install", "libvirt-daemon-kvm"},
+            /*optional=*/false,
+            /*alreadyInstalledCheck=*/{"/usr/bin/rpm", "-q", "--quiet",
+                "libvirt-daemon-kvm"}};
+    }
     for (const auto &[key, pkg] : QList<QPair<QString,QString>>{
             {"virtmanager",  "virt-manager"},
             {"libvirt",      "libvirt"},
@@ -386,15 +397,16 @@ QList<InstallStep> MainWizard::buildSteps() const
         S << InstallStep{"virt_vmcurator_copr", "Enable VM Curator COPR",
             {"/usr/bin/dnf", "copr", "enable", "-y", "linuxgamerlife/lgl-vm-curator"}};
         // The VM Curator RPM provides its core QEMU dependencies.  Install the
-        // Fedora packages needed by its common UEFI, SPICE, TPM, passt and
-        // managed-network features as an explicit runtime bundle.
+        // Fedora packages needed by its common UEFI, display, SPICE, TPM,
+        // passt and managed-network features as an explicit runtime bundle.
         S << InstallStep{"virt_vmcurator_install", "Install VM Curator and runtime support",
             {"/usr/bin/dnf", "-y", "install", "vm-curator", "edk2-ovmf",
-             "virt-viewer", "passt", "swtpm", "dnsmasq", "iproute", "nftables"},
+             "virt-viewer", "qemu-ui-sdl", "passt", "swtpm", "dnsmasq", "iproute",
+             "nftables"},
             /*optional=*/false,
             /*alreadyInstalledCheck=*/{"/usr/bin/rpm", "-q", "--quiet",
-                "vm-curator", "edk2-ovmf", "virt-viewer", "passt", "swtpm", "dnsmasq",
-                "iproute", "nftables"}};
+                "vm-curator", "edk2-ovmf", "virt-viewer", "qemu-ui-sdl", "passt",
+                "swtpm", "dnsmasq", "iproute", "nftables"}};
         S << InstallStep{"kvm_group",
             QString("Add %1 to kvm group").arg(tu),
             {"/usr/sbin/usermod", "-aG", "kvm", tu}};

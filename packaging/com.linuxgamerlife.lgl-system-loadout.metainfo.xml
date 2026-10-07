@@ -55,6 +55,15 @@
   </requires>
 
   <releases>
+    <release version="2.1.2" date="2026-10-07">
+      <description>
+        <p>Virtualisation runtime fixes.</p>
+        <ul>
+          <li>Libvirt clients now install the local QEMU daemon runtime before service and group setup</li>
+          <li>VM Curator now installs QEMU's SDL display module</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.1.1" date="2026-10-06">
       <description>
         <p>Virtualisation setup fixes.</p>

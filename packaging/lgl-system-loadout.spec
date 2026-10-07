@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        2.1.1
+Version:        2.1.2
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -116,6 +116,11 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Wed Oct 07 2026 LinuxGamerLife - 2.1.2-1
+- Ensure libvirt client selections install the local QEMU daemon runtime before
+  enabling libvirtd or adding the target user to the libvirt group
+- Install QEMU's SDL display module with VM Curator
+
 * Tue Oct 06 2026 LinuxGamerLife - 2.1.1-1
 - Fixed standalone VM Curator installation by adding its common Fedora runtime
   support and the target user to the kvm group
