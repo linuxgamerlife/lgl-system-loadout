@@ -2,7 +2,7 @@
 
 # The LGL System Loadout
 
-**Get a fresh Fedora install ready for gaming, content creation, and development — without the terminal.**
+**Get a fresh Fedora install ready for gaming, content creation, and development without the terminal.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Fedora](https://img.shields.io/badge/Fedora-43%20%7C%2044-blue?logo=fedora&logoColor=white)](https://fedoraproject.org)
@@ -20,29 +20,35 @@
 
 LGL System Loadout is a graphical setup wizard for Fedora. Pick exactly what you want from a curated list of software across gaming, multimedia, content creation, development, browsers, communication, GPU drivers, virtualisation, and the CachyOS kernel. One password prompt covers the entire installation.
 
-- Nothing is selected by default — every choice is yours
+- Nothing is selected by default; every choice is yours
 - Every item shows its current installed state before you commit
-- Installs only — nothing is removed without your knowledge
+- Installs only; nothing is removed without your knowledge
 
 ---
 
 ## Install
 
-### Recommended — COPR
+### Recommended: COPR
 
 ```bash
-sudo dnf copr enable linuxgamerlife/lgl-system-loadout
+sudo dnf copr enable linuxgamerlife/lgl-toolkit
 sudo dnf install lgl-system-loadout
 ```
 
 Launch **LGL System Loadout** from your application menu.
 
-### No Terminal — RPM from Releases
+> **COPR repository move:** LGL System Loadout has moved from the dedicated
+> `linuxgamerlife/lgl-system-loadout` COPR to `linuxgamerlife/lgl-toolkit` so
+> the LGL applications can be maintained and distributed together from one
+> repository. Existing installations continue to update after enabling the new
+> repository. The old repository can then be disabled with
+> `sudo dnf copr disable linuxgamerlife/lgl-system-loadout`.
 
-Download the `.rpm` for your Fedora version from [GitHub Releases](https://github.com/linuxgamerlife/lgl-system-loadout/releases) and double-click to install via Discover.
+### No Terminal: RPM from Releases
 
-- `lgl-system-loadout-2.1.1-1.fc43.x86_64.rpm` — Fedora 43
-- `lgl-system-loadout-2.1.1-1.fc44.x86_64.rpm` — Fedora 44
+Download the Fedora 44 RPM from the [latest GitHub release](https://github.com/linuxgamerlife/lgl-system-loadout/releases/latest) and double-click it to install via Discover.
+
+- `lgl-system-loadout-2.1.2-1.fc44.x86_64.rpm` for Fedora 44
 
 > After installing from Discover, close it and launch the app from your application menu rather than from the Discover install screen.
 
@@ -54,6 +60,9 @@ If you are using this in KDE, Workstation or another spin, then authentication w
 ## Build from Source
 
 ```bash
+# Install the Qt runtime
+sudo dnf install qt6-qtbase
+
 # Install build dependencies
 sudo dnf install cmake gcc-c++ qt6-qtbase-devel
 
@@ -64,8 +73,6 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 ```
-
-> Always build on the same machine you intend to run on. If you see `version 'Qt_6.x' not found`, run `sudo dnf upgrade qt6-qtbase` first.
 
 ---
 
@@ -92,7 +99,7 @@ make -j$(nproc)
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT. See [LICENSE](LICENSE) for details.
 
 ---
 
