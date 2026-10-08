@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(lgl-system-loadout VERSION 2.1.2 LANGUAGES CXX)
+project(lgl-system-loadout VERSION 2.1.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -59,6 +59,7 @@ qt_add_executable(lgl-system-loadout
 )
 
 target_link_libraries(lgl-system-loadout PRIVATE Qt6::Core Qt6::Widgets Qt6::Concurrent Qt6::Network)
+target_compile_definitions(lgl-system-loadout PRIVATE LGL_APP_VERSION="${PROJECT_VERSION}")
 
 install(TARGETS lgl-system-loadout RUNTIME DESTINATION /usr/local/bin)
 

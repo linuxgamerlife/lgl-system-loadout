@@ -48,7 +48,7 @@ Launch **LGL System Loadout** from your application menu.
 
 Download the Fedora 44 RPM from the [latest GitHub release](https://github.com/linuxgamerlife/lgl-system-loadout/releases/latest) and double-click it to install via Discover.
 
-- `lgl-system-loadout-2.1.2-1.fc44.x86_64.rpm` for Fedora 44
+- `lgl-system-loadout-2.1.3-1.fc44.x86_64.rpm` for Fedora 44
 
 > After installing from Discover, close it and launch the app from your application menu rather than from the Discover install screen.
 

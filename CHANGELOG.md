@@ -2,7 +2,7 @@
 
 ---
 
-## [Unreleased]
+## [2.1.3] — 2026-10-08
 
 ### Added
 - LGL Keychron Helper added to LGL Tool Kit
@@ -10,6 +10,9 @@
 ### Changed
 - LGL Tool Kit apps now install from the shared `linuxgamerlife/lgl-toolkit` COPR instead of one COPR per app (LGL Power Profile Manager stays on its own COPR for now)
 - LGL SCXCTL Manager renamed to LGL Scheduler Manager (`lgl-scheduler-manager`), following the upstream rename
+
+### Fixed
+- The app now reports its real version (it was hardcoded to 1.1.2)
 
 ## [2.1.2] — 2026-10-07
 

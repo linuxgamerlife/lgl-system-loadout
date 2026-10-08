@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
     app.setApplicationName("LGL System Loadout");
-    app.setApplicationVersion("1.1.2");
+    app.setApplicationVersion(LGL_APP_VERSION);  // from CMake project(VERSION)
     app.setOrganizationName("LinuxGamerLife");
 
     // Increase base font size by 2pt for readability.

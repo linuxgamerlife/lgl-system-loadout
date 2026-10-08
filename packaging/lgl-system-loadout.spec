@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        2.1.2
+Version:        2.1.3
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
 
@@ -116,6 +116,12 @@ fi
 %{_datadir}/pixmaps/lgl-system-loadout.png
 
 %changelog
+* Thu Oct 08 2026 LinuxGamerLife - 2.1.3-1
+- Install LGL Tool Kit apps from the shared linuxgamerlife/lgl-toolkit COPR
+- Rename LGL SCXCTL Manager to LGL Scheduler Manager (lgl-scheduler-manager)
+- Add LGL Keychron Helper to LGL Tool Kit
+- Report the correct application version
+
 * Wed Oct 07 2026 LinuxGamerLife - 2.1.2-1
 - Ensure libvirt client selections install the local QEMU daemon runtime before
   enabling libvirtd or adding the target user to the libvirt group

@@ -55,6 +55,16 @@
   </requires>
 
   <releases>
+    <release version="2.1.3" date="2026-10-08">
+      <description>
+        <p>LGL Tool Kit now uses the shared LGL Toolkit COPR.</p>
+        <ul>
+          <li>LGL Tool Kit apps install from the linuxgamerlife/lgl-toolkit COPR</li>
+          <li>LGL SCXCTL Manager renamed to LGL Scheduler Manager</li>
+          <li>New: LGL Keychron Helper</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.1.2" date="2026-10-07">
       <description>
         <p>Virtualisation runtime fixes.</p>
