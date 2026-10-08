@@ -11,7 +11,7 @@
 LglToolKitPage::LglToolKitPage(MainWizard *wizard) : QWizardPage(wizard), m_wiz(wizard)
 {
     setTitle("LGL Tool Kit");
-    setSubTitle("Small utilities from LinuxGamerLife, distributed via COPR.");
+    setSubTitle("Small utilities from LinuxGamerLife, distributed via the LGL Toolkit COPR.");
 }
 
 void LglToolKitPage::initializePage()
@@ -55,7 +55,7 @@ void LglToolKitPage::initializePage()
         m_boxes[key] = cb;
     };
 
-    addItem("lgl_scxctl_manager", "LGL SCXCTL Manager",
+    addItem("lgl_scheduler_manager", "LGL Scheduler Manager",
         "Qt6 GUI for managing sched-ext BPF schedulers via scxctl - start, stop, switch schedulers, and "
         "browse per-scheduler flags. Installs scx-tools/scx-scheds automatically if needed.");
     addItem("lgl_dnf_helper", "LGL DNF Helper",
@@ -70,18 +70,24 @@ void LglToolKitPage::initializePage()
     addItem("lgl_papercutter", "LGL Papercutter",
         "Graphical wallpaper editor - resize, position, zoom, and crop wallpapers to fit your display, "
         "including custom resolutions and ultrawide monitors.");
+    addItem("lgl_keychron_helper", "LGL Keychron Helper",
+        "Configure and update the firmware of supported Keychron devices on Linux, without installing or "
+        "opening a separate Chromium browser. Installs the required udev rules.");
 
     layout->addStretch();
     scroll->setWidget(inner);
     outer->addWidget(scroll);
 
     QList<QPair<QString, std::function<bool()>>> _checks;
-    _checks.append({"lgl_scxctl_manager",        []{ return isDnfInstalled("lgl-scxctl-manager"); }});
+    // lgl-scheduler-manager was renamed from lgl-scxctl-manager; treat either as installed.
+    _checks.append({"lgl_scheduler_manager",     []{ return isDnfInstalled("lgl-scheduler-manager")
+                                                         || isDnfInstalled("lgl-scxctl-manager"); }});
     _checks.append({"lgl_dnf_helper",            []{ return isDnfInstalled("lgl-dnf-helper"); }});
     _checks.append({"lgl_emoji_picker",          []{ return isDnfInstalled("lgl-emoji-picker"); }});
     _checks.append({"lgl_colour_picker",         []{ return isDnfInstalled("lgl-colour-picker"); }});
     _checks.append({"lgl_powerprofile_manager",  []{ return isDnfInstalled("lgl-powerprofile-manager"); }});
     _checks.append({"lgl_papercutter",           []{ return isDnfInstalled("lgl-papercutter"); }});
+    _checks.append({"lgl_keychron_helper",       []{ return isDnfInstalled("lgl-keychron-helper"); }});
 
     runChecksAsync(this, _checks, [this](QMap<QString,bool> results) {
         for (auto it = results.constBegin(); it != results.constEnd(); ++it) {

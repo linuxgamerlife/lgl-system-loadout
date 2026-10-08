@@ -495,8 +495,8 @@ QList<InstallStep> MainWizard::buildSteps() const
         // ---- CachyOS Kernel ----
     // kernel-cachyos COPR is only needed for the kernel itself.
     // kernel-cachyos-addons COPR is needed for both the kernel and scx packages
-    // (scx-tools/scx-scheds are a prerequisite of LGL SCXCTL Manager, below).
-    if (get("cachyos/kernel") || get("toolkit/lgl_scxctl_manager")) {
+    // (scx-tools/scx-scheds are a prerequisite of LGL Scheduler Manager, below).
+    if (get("cachyos/kernel") || get("toolkit/lgl_scheduler_manager")) {
         S << InstallStep{"cachyos_copr2", "Enable kernel-cachyos-addons COPR",
             {"/usr/bin/dnf", "copr", "enable", "-y", "bieszczaders/kernel-cachyos-addons"}};
     }
@@ -515,7 +515,22 @@ QList<InstallStep> MainWizard::buildSteps() const
             {"/usr/sbin/setsebool", "-P", "domain_kernel_load_modules", "on"}};
 
     // ---- LGL Tool Kit ----
-    if (get("toolkit/lgl_scxctl_manager")) {
+    // All LGL apps except Power Profile Manager are published in the shared lgl-toolkit COPR.
+    const QList<QPair<QString,QString>> toolkitPkgs = {
+        {"lgl_dnf_helper",      "lgl-dnf-helper"},
+        {"lgl_emoji_picker",    "lgl-emoji-picker"},
+        {"lgl_colour_picker",   "lgl-colour-picker"},
+        {"lgl_papercutter",     "lgl-papercutter"},
+        {"lgl_keychron_helper", "lgl-keychron-helper"},
+    };
+    bool needToolkitCopr = get("toolkit/lgl_scheduler_manager");
+    for (const auto &[key, pkg] : toolkitPkgs)
+        needToolkitCopr = needToolkitCopr || get(QString("toolkit/%1").arg(key));
+    if (needToolkitCopr)
+        S << InstallStep{"toolkit_copr", "Enable LGL Toolkit COPR",
+            {"/usr/bin/dnf", "copr", "enable", "-y", "linuxgamerlife/lgl-toolkit"}};
+
+    if (get("toolkit/lgl_scheduler_manager")) {
         // scx-tools/scx-scheds are a prerequisite — exit 1 is a known benign exit on some kernel configs.
         S << InstallStep{"toolkit_scx_scheds", "Install scx-scheds (prerequisite)",
             {"/usr/bin/dnf", "-y", "install", "--allowerasing", "scx-scheds"},
@@ -525,22 +540,17 @@ QList<InstallStep> MainWizard::buildSteps() const
         S << InstallStep{"toolkit_scx_tools", "Install scx-tools (prerequisite)",
             {"/usr/bin/dnf", "-y", "install", "--allowerasing", "scx-tools"},
             /*optional=*/false, {}, {1}};
-        S << InstallStep{"toolkit_scxctl_copr", "Enable lgl-scxctl-manager COPR",
-            {"/usr/bin/dnf", "copr", "enable", "-y", "linuxgamerlife/lgl-scxctl-manager"}};
-        S << dnfStep("toolkit_scxctl_install", "lgl-scxctl-manager");
+        S << dnfStep("toolkit_scheduler_install", "lgl-scheduler-manager");
     }
-    for (const auto &[key, pkg, repo] : QList<std::tuple<QString,QString,QString>>{
-            {"lgl_dnf_helper",           "lgl-dnf-helper",           "linuxgamerlife/lgl-dnf-helper"},
-            {"lgl_emoji_picker",         "lgl-emoji-picker",         "linuxgamerlife/lgl-emoji-picker"},
-            {"lgl_colour_picker",        "lgl-colour-picker",        "linuxgamerlife/lgl-colour-picker"},
-            {"lgl_powerprofile_manager", "lgl-powerprofile-manager", "linuxgamerlife/lgl-powerprofile-manager"},
-            {"lgl_papercutter",          "lgl-papercutter",          "linuxgamerlife/lgl-papercutter"},
-        }) {
-        if (get(QString("toolkit/%1").arg(key))) {
-            S << InstallStep{QString("toolkit_%1_copr").arg(key), QString("Enable %1 COPR").arg(pkg),
-                {"/usr/bin/dnf", "copr", "enable", "-y", repo}};
+    for (const auto &[key, pkg] : toolkitPkgs) {
+        if (get(QString("toolkit/%1").arg(key)))
             S << dnfStep(QString("toolkit_%1_install").arg(key), pkg);
-        }
+    }
+    // Power Profile Manager is not in lgl-toolkit yet — still uses its own COPR.
+    if (get("toolkit/lgl_powerprofile_manager")) {
+        S << InstallStep{"toolkit_lgl_powerprofile_manager_copr", "Enable lgl-powerprofile-manager COPR",
+            {"/usr/bin/dnf", "copr", "enable", "-y", "linuxgamerlife/lgl-powerprofile-manager"}};
+        S << dnfStep("toolkit_lgl_powerprofile_manager_install", "lgl-powerprofile-manager");
     }
 
     // ---- Final cleanup / tweaks ----
@@ -725,12 +735,13 @@ int MainWizard::estimateDiskMB() const
 
     if (get("cachyos/kernel"))       mb += 120;
     if (get("cachyos/kernel_devel")) mb += 80;
-    if (get("toolkit/lgl_scxctl_manager"))        mb += 60;  // includes scx-tools/scx-scheds prereqs
+    if (get("toolkit/lgl_scheduler_manager"))     mb += 60;  // includes scx-tools/scx-scheds prereqs
     if (get("toolkit/lgl_dnf_helper"))             mb += 15;
     if (get("toolkit/lgl_emoji_picker"))           mb += 15;
     if (get("toolkit/lgl_colour_picker"))          mb += 15;
     if (get("toolkit/lgl_powerprofile_manager"))   mb += 15;
     if (get("toolkit/lgl_papercutter"))             mb += 15;
+    if (get("toolkit/lgl_keychron_helper"))        mb += 15;
 
     const bool anyFlatpak =
         get("gaming/heroic")    || get("gaming/protonup")   ||

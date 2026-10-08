@@ -93,7 +93,7 @@ make -j$(nproc)
 | **Browsers** | Chromium, Firefox, Chrome, Brave, Vivaldi, Microsoft Edge, Helium, LibreWolf |
 | **Communication & Productivity** | LibreOffice Calc, LibreOffice Writer, Thunderbird, Discord, Vesktop, Spotify |
 | **CachyOS Kernel** | kernel-cachyos, kernel-cachyos-devel-matched |
-| **LGL Tool Kit** | LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker, LGL Colour Picker, LGL Power Profile Manager, LGL Papercutter |
+| **LGL Tool Kit** | LGL Scheduler Manager, LGL DNF Helper, LGL Emoji Picker, LGL Colour Picker, LGL Power Profile Manager, LGL Papercutter, LGL Keychron Helper |
 
 ---
 
