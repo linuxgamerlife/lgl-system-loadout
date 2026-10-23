@@ -5,3 +5,4 @@ dist/
 *.so
 CMakeCache.txt
 CMakeFiles/
+v3_update.md
