@@ -1,8 +1,12 @@
 MEMORY.md
-build*/
+v3_update.md
+build/
+build-*/
 dist/
+result/
+*.tar.gz
+*.rpm
 *.o
 *.so
 CMakeCache.txt
 CMakeFiles/
-v3_update.md

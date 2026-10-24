@@ -1,0 +1,283 @@
+/* LGL System Loadout (GTK).
+
+   Colours come from libadwaita's named colours, which libadwaita resolves from
+   the desktop (dark mode and accent colour through the settings portal) and
+   which the user's ~/.config/gtk-4.0/gtk.css overrides (Noctalia and similar
+   generators). ThemeWatcher re-reads that file when it changes, so the app
+   re-themes live. Only the status colours are fixed, with light and dark
+   variants selected by the .dark class on the main window. Loaded at
+   APPLICATION priority, so the user's gtk.css still wins. */
+
+@define-color lo_bg @window_bg_color;
+@define-color lo_fg @window_fg_color;
+@define-color lo_accent @accent_bg_color;
+@define-color lo_on_accent @accent_fg_color;
+
+@define-color lo_surface color-mix(in srgb, @window_fg_color 4%, @window_bg_color);
+@define-color lo_sunken  color-mix(in srgb, @window_fg_color 2%, @window_bg_color);
+@define-color lo_border  color-mix(in srgb, @window_fg_color 16%, @window_bg_color);
+@define-color lo_hover   color-mix(in srgb, @window_fg_color 8%, @window_bg_color);
+@define-color lo_muted   color-mix(in srgb, @window_fg_color 68%, @window_bg_color);
+@define-color lo_subtle  color-mix(in srgb, @window_fg_color 42%, @window_bg_color);
+
+@define-color lo_positive #067647;
+@define-color lo_neutral  #a15c07;
+@define-color lo_negative #b42318;
+@define-color lo_positive_dark #47cd89;
+@define-color lo_neutral_dark  #fdb022;
+@define-color lo_negative_dark #f97066;
+
+/* --- type ----------------------------------------------------------------- */
+
+/* Every class that uses the monospace stack is listed here. ThemeWatcher
+   replaces the families with the desktop monospace font. */
+.mono, .wordmark, .section-label, .lo-chip, .install-log {
+  font-family: "Adwaita Mono", "JetBrains Mono", monospace;
+}
+.mono { font-feature-settings: "tnum"; }
+.muted { color: @lo_muted; }
+.subtle { color: @lo_subtle; }
+.small { font-size: 0.85em; }
+
+.section-label {
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: @lo_muted;
+}
+
+/* Page-level section headings, louder than the small labels inside cards. */
+.section-title {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: @lo_fg;
+}
+
+.wordmark {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+/* --- layout --------------------------------------------------------------- */
+
+/* Square window corners: compositors that draw their own rounded borders clip
+   the window to them, and a second radius leaves a visible gap. */
+:root { --window-radius: 0px; }
+
+.body { padding: 12px; }
+
+.dialog-body { padding: 18px; }
+
+.step-title {
+  font-size: 1.35em;
+  font-weight: 700;
+}
+
+.step-scroller > viewport { background: none; }
+
+.lo-card {
+  background-color: @lo_surface;
+  border: 1px solid @lo_border;
+  border-radius: 10px;
+  padding: 14px;
+}
+.lo-card.flush { padding: 0; }
+.lo-card .card-head { padding: 12px 14px 8px 14px; }
+
+.empty-state {
+  padding: 24px;
+  color: @lo_muted;
+}
+
+paned > separator {
+  min-width: 12px;
+  min-height: 12px;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+/* --- buttons -------------------------------------------------------------- */
+
+button.lo-primary {
+  background-image: none;
+  background-color: @lo_accent;
+  color: @lo_on_accent;
+  border-color: @lo_accent;
+  font-weight: 600;
+}
+button.lo-primary:hover { background-color: color-mix(in srgb, @lo_accent 85%, @lo_fg); }
+button.lo-primary:disabled { opacity: 0.45; }
+
+button.lo-small {
+  min-height: 0;
+  padding: 2px 10px;
+  font-size: 0.85em;
+}
+
+/* --- chips ---------------------------------------------------------------- */
+
+.lo-chip {
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 1px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: @lo_subtle;
+}
+
+/* Pastel chips. The fixed status colours stay in charge of banners and
+   notices; the chips use softer tints so a grid of cards stays calm. */
+.lo-chip.positive { color: #3f7f63; border-color: alpha(#3f7f63, 0.28); background-color: alpha(#3f7f63, 0.13); }
+.lo-chip.neutral  { color: #8f6c2a; border-color: alpha(#8f6c2a, 0.28); background-color: alpha(#8f6c2a, 0.13); }
+.lo-chip.negative { color: #a9504a; border-color: alpha(#a9504a, 0.28); background-color: alpha(#a9504a, 0.13); }
+.lo-chip.accent   { color: @lo_accent; border-color: alpha(@lo_accent, 0.30); background-color: alpha(@lo_accent, 0.10); }
+.lo-chip.source   { color: #5c636e; border-color: alpha(#5c636e, 0.22); background-color: alpha(#5c636e, 0.09); }
+
+.chip-row > flowboxchild {
+  padding: 0;
+  background: none;
+}
+
+/* Keyboard focus on a card, drawn on the card rather than a thin theme ring. */
+.item-grid > flowboxchild:focus {
+  outline: 2px solid @lo_accent;
+  outline-offset: -2px;
+  border-radius: 10px;
+}
+
+.dark .lo-chip.positive { color: #9ed9b6; border-color: alpha(#9ed9b6, 0.30); background-color: alpha(#9ed9b6, 0.12); }
+.dark .lo-chip.neutral  { color: #eccd94; border-color: alpha(#eccd94, 0.30); background-color: alpha(#eccd94, 0.12); }
+.dark .lo-chip.negative { color: #e8a8a2; border-color: alpha(#e8a8a2, 0.30); background-color: alpha(#e8a8a2, 0.12); }
+.dark .lo-chip.source   { color: #b3b9c3; border-color: alpha(#b3b9c3, 0.22); background-color: alpha(#b3b9c3, 0.08); }
+
+/* --- step sidebar --------------------------------------------------------- */
+
+.step-list { background: none; }
+.step-list > row {
+  border-radius: 8px;
+  margin: 1px 6px;
+  padding: 7px 10px;
+}
+.step-list > row:hover { background-color: @lo_hover; }
+.step-list > row:selected {
+  background-color: color-mix(in srgb, @lo_accent 22%, transparent);
+  color: @lo_fg;
+}
+.step-list > row:selected label { color: @lo_fg; }
+
+/* --- scrolling ------------------------------------------------------------- */
+
+/* The main window scrolls with the wheel and keyboard but shows no scrollbar,
+   so nothing sits over the cards on the right edge. */
+.no-scrollbar scrollbar {
+  opacity: 0;
+}
+
+/* --- package cards -------------------------------------------------------- */
+
+.item-grid { background: none; }
+.item-grid > flowboxchild {
+  padding: 0;
+  border-radius: 10px;
+  background: none;
+}
+.item-grid > flowboxchild:selected { background: none; }
+
+.item-card {
+  background-color: @lo_surface;
+  border: 1px solid @lo_border;
+  border-radius: 10px;
+  padding: 12px;
+}
+.item-card:hover { background-color: @lo_hover; }
+.item-card.chosen {
+  border-color: @lo_accent;
+  background-color: color-mix(in srgb, @lo_accent 18%, @lo_surface);
+}
+
+.item-icon {
+  background-color: @lo_sunken;
+  border-radius: 12px;
+}
+
+.item-glyph {
+  color: #ffffff;
+  opacity: 0.96;
+}
+
+.item-title {
+  font-size: 1.03em;
+  font-weight: 700;
+}
+
+/* --- help window ---------------------------------------------------------- */
+
+.help-title {
+  font-size: 1.6em;
+  font-weight: 700;
+}
+
+.help-heading {
+  font-size: 1.2em;
+  font-weight: 700;
+  margin-top: 14px;
+}
+
+.help-body {
+  font-size: 1em;
+}
+
+.item-command { font-size: 0.78em; }
+
+.item-command-box {
+  background-color: @lo_sunken;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.item-desc { margin-top: 2px; }
+
+/* --- install view --------------------------------------------------------- */
+
+.install-log {
+  font-size: 0.9em;
+  background-color: @lo_sunken;
+}
+.install-steps { background: none; }
+.install-steps > row {
+  border-radius: 6px;
+  margin: 1px 4px;
+  padding: 5px 8px;
+}
+
+/* --- banners -------------------------------------------------------------- */
+
+.disk-banner {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid @lo_border;
+  background-color: @lo_surface;
+}
+.disk-banner.neutral  { border-color: alpha(@lo_neutral, 0.45);  background-color: alpha(@lo_neutral, 0.08); }
+.disk-banner.negative { border-color: alpha(@lo_negative, 0.45); background-color: alpha(@lo_negative, 0.08); }
+.dark .disk-banner.neutral  { border-color: alpha(@lo_neutral_dark, 0.45);  background-color: alpha(@lo_neutral_dark, 0.08); }
+.dark .disk-banner.negative { border-color: alpha(@lo_negative_dark, 0.45); background-color: alpha(@lo_negative_dark, 0.08); }
+
+/* --- notices -------------------------------------------------------------- */
+
+.lo-notice {
+  margin: 0 0 16px 0;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid @lo_border;
+  background-color: @lo_surface;
+  color: @window_fg_color;
+  box-shadow: 0 2px 10px alpha(black, 0.18);
+}
+.lo-notice.positive { color: @lo_positive; border-color: alpha(@lo_positive, 0.45); background-color: alpha(@lo_positive, 0.08); }
+.lo-notice.neutral  { color: @lo_neutral;  border-color: alpha(@lo_neutral, 0.45);  background-color: alpha(@lo_neutral, 0.08); }
+.lo-notice.negative { color: @lo_negative; border-color: alpha(@lo_negative, 0.45); background-color: alpha(@lo_negative, 0.08); }
+.dark .lo-notice.positive { color: @lo_positive_dark; border-color: alpha(@lo_positive_dark, 0.45); background-color: alpha(@lo_positive_dark, 0.08); }
+.dark .lo-notice.negative { color: @lo_negative_dark; border-color: alpha(@lo_negative_dark, 0.45); background-color: alpha(@lo_negative_dark, 0.08); }

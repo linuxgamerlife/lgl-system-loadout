@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build and test (Fedora 44)
+    runs-on: ubuntu-latest
+    container: fedora:44
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: >
+          dnf install -y
+          cmake gcc-c++ ninja-build pkgconf-pkg-config
+          gtkmm4.0-devel libadwaita-devel glibmm2.68-devel json-glib-devel glib2-devel
+          desktop-file-utils appstream
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+
+      - name: Build
+        run: cmake --build build -j$(nproc)
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Validate desktop entry and metainfo
+        run: |
+          desktop-file-validate packaging/com.linuxgamerlife.lgl-system-loadout.desktop
+          appstreamcli validate --no-net packaging/com.linuxgamerlife.lgl-system-loadout.metainfo.xml
+
+      - name: Check that no active file refers to the Qt tree
+        run: |
+          if grep -rIn --exclude-dir=legacy --exclude-dir=build --exclude-dir=.git \
+              -e 'Qt6' -e 'QWizard' -e 'qt_add_executable' -e 'add_subdirectory(gtk)' .; then
+            echo "Active files still refer to Qt or to a gtk/ subdirectory"
+            exit 1
+          fi

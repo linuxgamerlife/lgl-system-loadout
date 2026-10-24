@@ -17,7 +17,7 @@
     </p>
     <p>
       Nothing is selected by default. Every item shows whether it is already installed
-      before you commit. One password prompt covers the entire installation.
+      before you commit. One password prompt covers the package installation.
     </p>
   </description>
 
@@ -55,6 +55,25 @@
   </requires>
 
   <releases>
+    <release version="3.0.0" date="2026-10-25">
+      <description>
+        <p>The interface is now built with GTK 4, so it follows the desktop theme and does not need the Qt runtime.</p>
+        <ul>
+          <li>New GTK 4 interface with the same steps and install flow</li>
+          <li>Follows the desktop theme live, including dark mode and the monospace font</li>
+          <li>Choose between the app title bar and the compositor's title bar</li>
+          <li>Help window, About dialog, and remembered window preferences</li>
+          <li>Hardened privileged helper with a private session socket, a one-time session code, and a stricter command allow-list</li>
+          <li>Bundled application icons so cards show real artwork on a fresh install</li>
+          <li>Live theme and accent updates, including the app's custom colours and monospace font</li>
+          <li>Install Now is an explicit gate before the password prompt, and the update page cannot be left while it is running</li>
+          <li>AppImages download atomically, verify pinned checksums where available, and use the matching architecture</li>
+          <li>The Flatpak follow-up prompt stays above the output, and a Continue button at the bottom left advances each ready step</li>
+          <li>The About dialog is a compact fixed-size popup with wrapped credits text</li>
+          <li>Same package name and install flow, so an upgrade needs no extra steps</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.1.3" date="2026-10-08">
       <description>
         <p>LGL Tool Kit now uses the shared LGL Toolkit COPR.</p>
@@ -92,7 +111,7 @@
           <li>Added cbonsai and podman to System Tools</li>
           <li>Added LGL Papercutter to LGL Tool Kit</li>
           <li>Added VM Curator to Virtualisation</li>
-          <li>Removed the KineticWE page — no longer supported</li>
+          <li>Removed the KineticWE page - no longer supported</li>
         </ul>
       </description>
     </release>
@@ -127,7 +146,7 @@
       <description>
         <p>LGL Tool Kit, KineticWE, and a reorganised Development Tools / Gaming / System Tools layout.</p>
         <ul>
-          <li>New "LGL Tool Kit" page — LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker, LGL Colour Picker, LGL Power Profile Manager, replacing the standalone SCX Scheduler Tools page</li>
+          <li>New "LGL Tool Kit" page - LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker, LGL Colour Picker, LGL Power Profile Manager, replacing the standalone SCX Scheduler Tools page</li>
           <li>New "KineticWE" page (COPR), with an IMPORTANT notice about it obsoleting stock KWin packages</li>
           <li>"Python &amp; CLI Dev Tools" page renamed to "Development Tools"; added Zed and GitHub Desktop</li>
           <li>tldr moved to System Tools, yt-dlp moved to Content Creation</li>

@@ -1,19 +1,33 @@
 Name:           lgl-system-loadout
-Version:        2.1.3
+Version:        3.0.0
 Release:        1%{?dist}
-Summary:        Guided setup wizard for Fedora — gaming, content creation, and development
+Summary:        Guided setup wizard for Fedora: gaming, content creation, and development
 
 License:        MIT
 URL:            https://github.com/linuxgamerlife/lgl-system-loadout
-Source0:        https://github.com/linuxgamerlife/lgl-system-loadout/archive/refs/tags/v%{version}.tar.gz
-BuildRequires:  cmake >= 3.16
+# Generated from the checked-out commit by `make source` or `make srpm`.
+# `legacy/qt/` is excluded from the archive; COPR SCM builds need no Git tag.
+Source0:        %{name}-%{version}.tar.gz
+
+# The root CMakeLists.txt builds the maintained GTK 4 application and its
+# privileged helper from src/.
+
+BuildRequires:  cmake >= 3.20
+BuildRequires:  cmake-rpm-macros
 BuildRequires:  gcc-c++
-BuildRequires:  qt6-qtbase-devel
+BuildRequires:  ninja-build
+BuildRequires:  pkgconfig(gtkmm-4.0) >= 4.20
+BuildRequires:  pkgconfig(libadwaita-1) >= 1.6
+BuildRequires:  pkgconfig(glibmm-2.68)
+BuildRequires:  pkgconfig(json-glib-1.0)
+BuildRequires:  glib2-devel
+BuildRequires:  desktop-file-utils
+BuildRequires:  appstream
+
 # Runtime dependencies
-# qt6-qtbase is the only true library dependency — all other tools (dnf, curl,
-# flatpak) are invoked via the privileged helper and are already present on any
-# Fedora 43+ system. Declaring them here causes unnecessary resolver conflicts.
-Requires:       qt6-qtbase
+# The GTK and GLib libraries are resolved from the binary's sonames. All the
+# tools this wizard runs (dnf, flatpak, curl) are invoked through the
+# privileged helper and are already present on any Fedora 43+ system.
 Requires:       polkit
 
 %description
@@ -22,55 +36,23 @@ creation, and development - without the terminal. Pick exactly what you want
 from a curated list, click Install, and you are done.
 
 Nothing is selected by default. Every item shows whether it is already
-installed before you commit. One password prompt covers the entire
-installation.
+installed before you commit. One password prompt covers the package
+installation; the system update and Flatpak update are separate sessions.
 
 %prep
 %autosetup
 
 %build
-mkdir -p build
-cd build
-cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-    -DCMAKE_DISABLE_FIND_PACKAGE_Qt6Test=ON
-%make_build
+%cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+%cmake_build
 
 %install
-# Main GUI binary — runs as normal user
-install -Dm755 build/lgl-system-loadout \
-    %{buildroot}%{_bindir}/lgl-system-loadout
+%cmake_install
 
-# Privileged helper binary — launched via pkexec, never run directly
-install -Dm755 build/lgl-system-loadout-helper \
-    %{buildroot}%{_libexecdir}/lgl-system-loadout/lgl-system-loadout-helper
-
-# Desktop entry
-install -Dm644 packaging/com.linuxgamerlife.lgl-system-loadout.desktop \
-    %{buildroot}%{_datadir}/applications/com.linuxgamerlife.lgl-system-loadout.desktop
-
-# Polkit policy — references the helper binary path
-install -Dm644 packaging/lgl-system-loadout.policy \
-    %{buildroot}%{_datadir}/polkit-1/actions/com.linuxgamerlife.lgl-system-loadout.run-helper.policy
-
-# Icons — hicolor theme sizes
-install -Dm644 packaging/lgl-system-loadout-256.png \
-    %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/lgl-system-loadout.png
-install -Dm644 packaging/lgl-system-loadout-128.png \
-    %{buildroot}%{_datadir}/icons/hicolor/128x128/apps/lgl-system-loadout.png
-install -Dm644 packaging/lgl-system-loadout-64.png \
-    %{buildroot}%{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout.png
-install -Dm644 packaging/lgl-system-loadout-48.png \
-    %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/lgl-system-loadout.png
-
-# Pixmaps fallback
-install -Dm644 packaging/lgl-system-loadout-256.png \
-    %{buildroot}%{_datadir}/pixmaps/lgl-system-loadout.png
-
-# AppStream metainfo
-install -Dm644 packaging/com.linuxgamerlife.lgl-system-loadout.metainfo.xml \
-    %{buildroot}%{_datadir}/metainfo/com.linuxgamerlife.lgl-system-loadout.metainfo.xml
+%check
+%ctest
+desktop-file-validate %{buildroot}%{_datadir}/applications/com.linuxgamerlife.%{name}.desktop
+appstreamcli validate --no-net %{buildroot}%{_datadir}/metainfo/com.linuxgamerlife.%{name}.metainfo.xml
 
 %post
 if [ -x /usr/bin/gtk-update-icon-cache ]; then
@@ -81,9 +63,6 @@ if [ -x /usr/bin/update-desktop-database ]; then
 fi
 if [ -x /usr/bin/appstreamcli ]; then
     appstreamcli refresh --force &>/dev/null || :
-fi
-if [ -x /usr/bin/kbuildsycoca6 ]; then
-    kbuildsycoca6 &>/dev/null || :
 fi
 # Reload polkit so the new policy is picked up immediately without requiring
 # a reboot or manual polkit restart.
@@ -104,18 +83,42 @@ fi
 
 %files
 %license LICENSE
-%{_bindir}/lgl-system-loadout
-%{_libexecdir}/lgl-system-loadout/lgl-system-loadout-helper
-%{_datadir}/applications/com.linuxgamerlife.lgl-system-loadout.desktop
-%{_datadir}/metainfo/com.linuxgamerlife.lgl-system-loadout.metainfo.xml
-%{_datadir}/polkit-1/actions/com.linuxgamerlife.lgl-system-loadout.run-helper.policy
-%{_datadir}/icons/hicolor/256x256/apps/lgl-system-loadout.png
-%{_datadir}/icons/hicolor/128x128/apps/lgl-system-loadout.png
-%{_datadir}/icons/hicolor/64x64/apps/lgl-system-loadout.png
-%{_datadir}/icons/hicolor/48x48/apps/lgl-system-loadout.png
-%{_datadir}/pixmaps/lgl-system-loadout.png
+%doc README.md CHANGELOG.md HELP.md data/icons/ATTRIBUTION.md
+%{_bindir}/%{name}
+%{_libexecdir}/%{name}/%{name}-helper
+%{_datadir}/applications/com.linuxgamerlife.%{name}.desktop
+%{_datadir}/metainfo/com.linuxgamerlife.%{name}.metainfo.xml
+%{_datadir}/polkit-1/actions/com.linuxgamerlife.%{name}.run-helper.policy
+%{_datadir}/icons/hicolor/48x48/apps/%{name}.png
+%{_datadir}/icons/hicolor/64x64/apps/%{name}.png
+%{_datadir}/icons/hicolor/128x128/apps/%{name}.png
+%{_datadir}/icons/hicolor/256x256/apps/%{name}.png
 
 %changelog
+* Sun Oct 25 2026 LinuxGamerLife - 3.0.0-1
+- Rewrite the interface in GTK 4 (gtkmm) with libadwaita theming
+- Follow the desktop theme live, including the monospace font and dark mode
+- Add both title bar modes, Help, About, and a settings file
+- Move the Qt implementation to legacy/qt as historical reference
+- Drop the Qt runtime dependency; dnf, flatpak and curl still run through the
+  privileged helper after a single pkexec prompt
+- Add the v3 content set: Essentials, Remote Access, Git, Zed, ArtCraft, LGL
+  CLIamp, browser grouping, Telegram, opencode and pi
+- Add Refresh, Select All and Select None to Essentials
+- Add an Install Now gate, a Continue footer, and lock the update page while
+  it is running
+- Harden the privileged helper with a private session socket, a per-session
+  nonce, a restricted allow-list, and bounded buffers
+- Install Ghostty from the scottames/ghostty COPR
+- Make AppImage downloads atomic, checksum-verified where available, and
+  architecture-aware
+- Fix the About dialog to a compact fixed size and wrap its credits
+- Bundle the GUI application icons and expose them through an icon theme
+  resource path, so cards show real artwork on a fresh system
+- Reload the application stylesheet and watch GtkSettings so live theme and
+  accent changes update the app's custom colours
+- Build-require appstream so metainfo validation works in minimal build roots
+
 * Thu Oct 08 2026 LinuxGamerLife - 2.1.3-1
 - Install LGL Tool Kit apps from the shared linuxgamerlife/lgl-toolkit COPR
 - Rename LGL SCXCTL Manager to LGL Scheduler Manager (lgl-scheduler-manager)
@@ -141,10 +144,10 @@ fi
 - Removed KineticWE page (no longer supported)
 
 * Sun Jul 12 2026 LinuxGamerLife - 2.0.3-1
-- Fixed Flatpak installs failing for Flatseal, Zed, and GitHub Desktop — their
+- Fixed Flatpak installs failing for Flatseal, Zed, and GitHub Desktop: their
   install steps ran before the Flathub remote was added
 - Fixed Tenacity never actually installing despite being selectable
-- Fixed reboot buttons on the Update and Done pages not triggering polkit —
+- Fixed reboot buttons on the Update and Done pages not triggering polkit -
   they now go through the app's own privileged helper instead of a raw,
   unmonitored pkexec call
 - Fixed Flatpak install-detection relying on PATH resolution instead of an
@@ -153,7 +156,7 @@ fi
 
 * Sun Jul 12 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 2.0.2-1
 - Fixed "could not connect to helper socket" error when accepting the Flatpak
-  update prompt on the System Update page — the privileged helper only ever
+  update prompt on the System Update page: the privileged helper only ever
   accepts one client connection for its whole process lifetime and had
   already shut down after the system update step; the Flatpak update step
   now launches its own fresh helper session, same as other phases already do
@@ -165,7 +168,7 @@ fi
 * Sun Jul 12 2026 LinuxGamerLife <contact@linuxgamerlife.com> - 2.0.0-1
 - New "LGL Tool Kit" page (LGL SCXCTL Manager, LGL DNF Helper, LGL Emoji Picker,
   LGL Colour Picker, LGL Power Profile Manager), replacing the standalone SCX
-  Scheduler Tools page — scx-tools/scx-scheds now only install as a
+  Scheduler Tools page: scx-tools/scx-scheds now only install as a
   prerequisite of LGL SCXCTL Manager
 - New "KineticWE" page (COPR), with an IMPORTANT notice that it obsoletes
   stock kwin/kwin-common/kwin-libs and installs alongside the current DE
