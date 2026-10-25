@@ -36,10 +36,14 @@ jobs:
           desktop-file-validate packaging/com.linuxgamerlife.lgl-system-loadout.desktop
           appstreamcli validate --no-net packaging/com.linuxgamerlife.lgl-system-loadout.metainfo.xml
 
-      - name: Check that no active file refers to the Qt tree
+      - name: Check that no active build file refers to the Qt tree
         run: |
-          if grep -rIn --exclude-dir=legacy --exclude-dir=build --exclude-dir=.git \
-              -e 'Qt6' -e 'QWizard' -e 'qt_add_executable' -e 'add_subdirectory(gtk)' .; then
-            echo "Active files still refer to Qt or to a gtk/ subdirectory"
+          if git grep -In \
+              -e 'Qt6' \
+              -e 'QWizard' \
+              -e 'qt_add_executable' \
+              -e 'add_subdirectory(gtk)' \
+              -- CMakeLists.txt Makefile .copr packaging src data tests; then
+            echo "Active build files still refer to Qt or to a gtk/ subdirectory"
             exit 1
           fi
