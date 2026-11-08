@@ -29,7 +29,7 @@ void hasUniqueKeysAndPages()
             }
         }
     }
-    g_assert_cmpuint(pages.size(), ==, 13);
+    g_assert_cmpuint(pages.size(), ==, 14);
 }
 
 void requirementsReferenceRealItems()
@@ -59,29 +59,27 @@ void reportsChainedRequirements()
     g_assert_true(unmet.front().requiredKey == "gaming/steam");
 }
 
-void choiceGroupsAreComplete()
+void essentialsHasChoicesAndWifi()
 {
-    const auto &groups = catalog::choiceGroups();
-    g_assert_cmpuint(groups.size(), ==, 2);
+    const auto *essentials = catalog::page("essentials");
+    g_assert_nonnull(essentials);
 
-    for (const auto &group : groups) {
-        g_assert_false(group.id.empty());
-        g_assert_false(group.title.empty());
-        g_assert_cmpuint(group.options.size(), >=, 2);
+    for (const char *key : {"choice:file-manager:dolphin", "choice:file-manager:nemo",
+                            "choice:terminal:konsole", "choice:terminal:kitty",
+                            "choice:terminal:foot", "choice:terminal:ghostty",
+                            "essentials/wifi_nm", "essentials/wifi_wpa",
+                            "essentials/wifi_firmware"})
+        g_assert_nonnull(catalog::item(key));
 
-        std::set<std::string> values;
-        for (const auto &option : group.options) {
-            g_assert_true(values.insert(option.value).second);
-            g_assert_false(option.label.empty());
-            g_assert_false(option.package.empty());
-            g_assert_false(option.glyph.empty());
-        }
-    }
+    bool hasWifiNote = false;
+    for (const auto &section : essentials->sections)
+        hasWifiNote = hasWifiNote || !section.note.empty();
+    g_assert_true(hasWifiNote);
 }
 
 void everyPageHasItems()
 {
-    for (const char *id : {"repositories", "system-tools", "remote-access", "development", "multimedia", "content",
+    for (const char *id : {"essentials", "repositories", "system-tools", "remote-access", "development", "multimedia", "content",
                            "graphics", "gaming", "virtualisation", "browsers", "communication",
                            "kernel", "toolkit"}) {
         const auto *page = catalog::page(id);
@@ -128,7 +126,7 @@ int main(int argc, char **argv)
     g_test_add_func("/catalog/requirements", requirementsReferenceRealItems);
     g_test_add_func("/catalog/lookup", pageLookupWorks);
     g_test_add_func("/catalog/chained", reportsChainedRequirements);
-    g_test_add_func("/catalog/choices", choiceGroupsAreComplete);
+    g_test_add_func("/catalog/essentials", essentialsHasChoicesAndWifi);
     g_test_add_func("/catalog/pages", everyPageHasItems);
     g_test_add_func("/selection/empty", selectionStartsEmpty);
     g_test_add_func("/selection/keeps", selectionRemembersChoices);

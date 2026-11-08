@@ -1,8 +1,10 @@
 #pragma once
 
+#include "core/desktop.h"
 #include "core/selection.h"
 #include "core/system.h"
 
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -29,6 +31,9 @@ struct InstallStep final {
     // command succeeds.
     std::string verifyPath;
     std::string expectedSha256;
+    // For an installed AppImage: create a user-scope desktop entry and icon
+    // after this step succeeds.
+    std::optional<DesktopEntry> desktop;
 
     InstallStep() = default;
     InstallStep(std::string stepId, std::string stepDescription,

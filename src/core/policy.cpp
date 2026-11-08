@@ -119,6 +119,7 @@ const std::vector<Op> &allowList()
         {"/usr/bin/curl", {fixed("-fsSL"), fixed("-o"), filePathRun(), urlHttps()}},
 
         {"/usr/bin/systemctl", {fixed("enable"), fixed("--now"), fixed("libvirtd")}},
+        {"/usr/bin/systemctl", {fixed("enable"), fixed("--now"), fixed("NetworkManager")}},
         {"/usr/bin/systemctl",
          {fixed("disable"), fixed("--now"), fixed("NetworkManager-wait-online")}},
         {"/usr/bin/systemctl", {fixed("reboot")}},

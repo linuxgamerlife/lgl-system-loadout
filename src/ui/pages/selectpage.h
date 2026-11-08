@@ -27,7 +27,8 @@ class CardGrid;
 class SelectPage final : public Page {
 public:
     SelectPage(const catalog::Page &definition, Selection &selection, Checker &checker,
-               const SystemInfo &system, std::function<void()> selectionChanged, Notify notify);
+               const SystemInfo &system, std::function<void()> selectionChanged, Notify notify,
+               bool showSelectAll = true);
 
     void onShown() override;
     void syncFromSelection() override;

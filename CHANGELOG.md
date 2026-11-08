@@ -2,6 +2,22 @@
 
 ---
 
+## [3.0.1] - 2026-11-08
+
+### Changed
+- Essentials now allows any number of file managers and terminals instead of one of each, and Select All is no longer offered there
+- opencode and Pi are normal selectable items that install as local user steps, instead of manual-only cards with a Copy button
+- Installed AppImages now create a user-scope desktop entry and icon under `~/.local/share`, so they appear in the application menu
+
+### Added
+- Wi-Fi section on Essentials with NetworkManager-wifi, wpa_supplicant and linux-firmware; NetworkManager is enabled when it is selected
+- Kate and KWrite under Communication & Productivity > Text Editors
+
+### Fixed
+- VM Curator installs the full qemu-system-x86 stack with its runtime support and is hidden on non-x86_64 systems, matching its x86_64-only COPR
+- The installed badge for VM Curator now also checks the QEMU system package
+- linux-firmware is skipped when it is already installed
+
 ## [3.0.0] - 2026-10-25
 
 ### Changed

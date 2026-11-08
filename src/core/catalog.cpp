@@ -19,6 +19,45 @@ Item entry(std::string key, std::string label, std::string description, const in
 const std::vector<Page> &build()
 {
     static const std::vector<Page> pages{
+        {"essentials",
+         "Essentials",
+         "Everyday desktop tools, plus optional Wi-Fi support for laptops.",
+         {{"File manager",
+           {
+               entry("choice:file-manager:dolphin", "Dolphin",
+                     "KDE's file manager, with split views and an embedded terminal panel.", 20),
+               entry("choice:file-manager:nemo", "Nemo",
+                     "Cinnamon's file manager, with a tree sidebar and a familiar layout.", 15),
+           }},
+          {"Terminal",
+           {
+               entry("choice:terminal:konsole", "Konsole",
+                     "KDE's terminal emulator, with profiles and split views.", 15),
+               entry("choice:terminal:kitty", "Kitty",
+                     "GPU-accelerated terminal, fast and scriptable.", 20),
+               entry("choice:terminal:foot", "Foot",
+                     "Lightweight terminal for Wayland, with very low overhead.", 5),
+               entry("choice:terminal:ghostty", "Ghostty",
+                     "Fast, native terminal with a modern feature set. Installed from the "
+                     "scottames/ghostty COPR.",
+                     20),
+           }},
+          {"Wi-Fi",
+           {
+               entry("essentials/wifi_nm", "NetworkManager Wi-Fi",
+                     "Wi-Fi support for NetworkManager. Install this if the machine has a "
+                     "wireless adapter.",
+                     5),
+               entry("essentials/wifi_wpa", "wpa_supplicant",
+                     "WPA and WPA2 supplicant used by NetworkManager for wireless networks.", 10),
+               entry("essentials/wifi_firmware", "linux-firmware",
+                     "Firmware for wireless and other hardware. Most systems already have it.",
+                     500),
+           },
+           {},
+           "If you installed this on a laptop connected by Ethernet and plan to use Wi-Fi "
+           "later, select these now."}}},
+
         {"repositories",
          "Repositories",
          "Select which repositories to enable. RPM Fusion is required for most multimedia, "
@@ -125,24 +164,16 @@ const std::vector<Page> &build()
                      "Graphical client for managing GitHub repositories.", 150),
            }},
           {"AI coding tools",
-           {},
-           {ManualOption{"opencode",
-                         "Terminal-based AI coding agent. Installs to ~/.local/bin and updates "
-                         "itself.",
-                         "curl -fsSL https://opencode.ai/install | bash",
-                         {{"/usr/bin/test", "-x", "{home}/.local/bin/opencode"},
-                          {"/usr/bin/test", "-x", "{home}/.opencode/bin/opencode"},
-                          {"/usr/bin/test", "-x", "/usr/local/bin/opencode"},
-                          {"/usr/bin/test", "-x", "/usr/bin/opencode"}},
-                         true, "opencode.ai"},
-            ManualOption{"pi",
-                         "Minimal agent harness from pi.dev. Installs to ~/.local/bin and "
-                         "updates itself.",
-                         "curl -fsSL https://pi.dev/install.sh | sh",
-                         {{"/usr/bin/test", "-x", "{home}/.local/bin/pi"},
-                          {"/usr/bin/test", "-x", "/usr/local/bin/pi"},
-                          {"/usr/bin/test", "-x", "/usr/bin/pi"}},
-                         false, "pi.dev"}}}}},
+           {
+               entry("development/opencode", "opencode",
+                     "Terminal-based AI coding agent. Installs to ~/.opencode/bin and links into "
+                     "~/.local/bin, then updates itself.",
+                     100),
+               entry("development/pi", "Pi",
+                     "Minimal agent harness from pi.dev. Installs Node.js and npm first, then "
+                     "installs into ~/.local/bin and updates itself.",
+                     150),
+           }}}},
 
         {"multimedia",
          "Multimedia & Codecs",
@@ -333,6 +364,15 @@ const std::vector<Page> &build()
                      "Installed as an AppImage in ~/Applications.",
                      200),
            }},
+          {"Text Editors",
+           {
+               entry("comms/kate", "Kate",
+                     "KDE's advanced text editor, with sessions, split views, and a built-in "
+                     "terminal.",
+                     25),
+               entry("comms/kwrite", "KWrite",
+                     "KDE's lightweight text editor, with syntax highlighting.", 10),
+           }},
           {"Office",
            {
                entry("comms/office_calc", "LibreOffice Calc",
@@ -414,37 +454,6 @@ const std::vector<Page> &pages()
     return build();
 }
 
-const std::vector<ChoiceGroup> &choiceGroups()
-{
-    static const std::vector<ChoiceGroup> groups{
-        {"file-manager",
-         "File manager",
-         "The desktop's file manager. Pick the one that suits the desktop you use.",
-         {
-             {"dolphin", "Dolphin", "KDE's file manager, with split views and an embedded "
-                                    "terminal panel.", "dolphin", "system-file-manager-symbolic",
-              20, true},
-             {"nemo", "Nemo", "Cinnamon's file manager, with a tree sidebar and a familiar "
-                              "layout.", "nemo", "system-file-manager-symbolic", 15},
-         }},
-        {"terminal",
-         "Terminal",
-         "The terminal used for every command-line task on this system.",
-         {
-             {"konsole", "Konsole", "KDE's terminal emulator, with profiles and split views.",
-              "konsole", "utilities-terminal-symbolic", 15, true},
-             {"kitty", "Kitty", "GPU-accelerated terminal, fast and scriptable.", "kitty",
-              "utilities-terminal-symbolic", 20, true},
-             {"foot", "Foot", "Lightweight terminal for Wayland, with very low overhead.",
-              "foot", "utilities-terminal-symbolic", 5},
-             {"ghostty", "Ghostty", "Fast, native terminal with a modern feature set.",
-              "ghostty", "utilities-terminal-symbolic", 20, false, "COPR",
-              "scottames/ghostty"},
-         }},
-    };
-    return groups;
-}
-
 const Page *page(const std::string &id)
 {
     for (const auto &entryPage : pages())
@@ -493,9 +502,15 @@ std::vector<std::string> iconNamesFor(const std::string &key)
         {"choice:terminal:foot", {"foot"}},
         {"choice:terminal:ghostty", {"com.mitchellh.ghostty", "ghostty"}},
 
+        {"essentials/wifi_nm", {"network-wireless-symbolic"}},
+        {"essentials/wifi_wpa", {"network-wireless-symbolic"}},
+        {"essentials/wifi_firmware", {"application-x-firmware"}},
+
         {"manual:Zed", {"dev.zed.Zed", "zed"}},
-        {"manual:opencode", {"opencode"}},
-        {"manual:pi", {"pi"}},
+        {"development/opencode", {"opencode"}},
+        {"development/pi", {"pi"}},
+        {"comms/kate", {"kate"}},
+        {"comms/kwrite", {"kwrite"}},
 
         {"systools/fastfetch", {"fastfetch"}},
         {"systools/btop", {"btop"}},
@@ -591,6 +606,8 @@ std::string iconResourceFor(const std::string &key)
         return "/com/linuxgamerlife/loadout/icons/artcraft.png";
     if (key == "choice:file-manager:dolphin")
         return "/com/linuxgamerlife/loadout/icons/dolphin.png";
+    if (key == "choice:file-manager:nemo")
+        return "/com/linuxgamerlife/loadout/icons/nemo.svg";
     if (key == "choice:terminal:konsole")
         return "/com/linuxgamerlife/loadout/icons/konsole.png";
     if (key == "choice:terminal:kitty")
@@ -609,9 +626,9 @@ std::string iconResourceFor(const std::string &key)
         return "/com/linuxgamerlife/loadout/icons/sunshine.png";
     if (key == "manual:Zed")
         return "/com/linuxgamerlife/loadout/icons/zed.png";
-    if (key == "manual:opencode")
+    if (key == "development/opencode")
         return "/com/linuxgamerlife/loadout/icons/opencode.png";
-    if (key == "manual:pi")
+    if (key == "development/pi")
         return "/com/linuxgamerlife/loadout/icons/pi.png";
     if (key == "cachyos/kernel")
         return "/com/linuxgamerlife/loadout/icons/cachyos.png";
@@ -623,6 +640,16 @@ std::string iconResourceFor(const std::string &key)
 std::string sourceFor(const std::string &key)
 {
     static const std::map<std::string, std::string> sources{
+        {"choice:file-manager:dolphin", "Fedora"},
+        {"choice:file-manager:nemo", "Fedora"},
+        {"choice:terminal:konsole", "Fedora"},
+        {"choice:terminal:kitty", "Fedora"},
+        {"choice:terminal:foot", "Fedora"},
+        {"choice:terminal:ghostty", "COPR"},
+        {"essentials/wifi_nm", "Fedora"},
+        {"essentials/wifi_wpa", "Fedora"},
+        {"essentials/wifi_firmware", "Fedora"},
+
         {"systools/fastfetch", "Fedora"},        {"systools/btop", "Fedora"},
         {"systools/cmatrix", "Fedora"},          {"systools/cbonsai", "Fedora"},
         {"systools/distrobox", "Fedora"},        {"systools/timeshift", "Fedora"},
@@ -634,6 +661,7 @@ std::string sourceFor(const std::string &key)
         {"python/pip", "Fedora"},                {"python/pipx", "Fedora"},
         {"python/git", "Fedora"},                {"python/zed", "Flatpak"},
         {"python/github_desktop", "Flatpak"},
+        {"development/opencode", "opencode.ai"}, {"development/pi", "pi.dev"},
 
         {"media/ffmpeg", "RPM Fusion"},          {"media/gst_bad_free_extras", "RPM Fusion"},
         {"media/gst_bad_nonfree", "RPM Fusion"}, {"media/vlc", "RPM Fusion"},
@@ -664,6 +692,7 @@ std::string sourceFor(const std::string &key)
         {"browsers/floorp", "Flatpak"},
 
         {"comms/office_calc", "Fedora"},         {"comms/office_writer", "Fedora"},
+        {"comms/kate", "Fedora"},                {"comms/kwrite", "Fedora"},
         {"comms/discord", "Flatpak"},            {"comms/telegram", "Flatpak"},
         {"comms/spotify", "Flatpak"},            {"comms/lgl_cliamp", "COPR"},
         {"comms/artcraft", "AppImage"},
@@ -686,6 +715,10 @@ std::string sourceFor(const std::string &key)
 bool isLglChoice(const std::string &key)
 {
     static const std::set<std::string> choices{
+        "choice:file-manager:dolphin",
+        "choice:terminal:konsole",
+        "choice:terminal:kitty",
+
         "systools/fastfetch",       "systools/btop",
         "systools/cmatrix",         "systools/cbonsai",
         "systools/podman",          "systools/timeshift",
@@ -750,6 +783,11 @@ PageExtras extrasFor(const std::string &pageId, const SystemInfo &system)
     PageExtras extras;
 
     if (pageId == "virtualisation") {
+        if (!system.architecture.empty() && system.architecture != "x86_64")
+            extras.notes.emplace_back(
+                "VM CURATOR ON X86_64 ONLY",
+                "LGL VM Curator is built for x86_64, so it is not offered on this system. "
+                "virt-manager, libvirt and virt-viewer are still available.");
         extras.notes.emplace_back(
             "ENABLE VIRTUALISATION IN YOUR BIOS/UEFI",
             "For the best performance, enable hardware virtualisation (Intel VT-x/VT-d or "

@@ -1,5 +1,5 @@
 Name:           lgl-system-loadout
-Version:        3.0.0
+Version:        3.0.1
 Release:        1%{?dist}
 Summary:        Guided setup wizard for Fedora: gaming, content creation, and development
 
@@ -95,6 +95,15 @@ fi
 %{_datadir}/icons/hicolor/256x256/apps/%{name}.png
 
 %changelog
+* Sun Nov 08 2026 LinuxGamerLife - 3.0.1-1
+- Allow multiple file managers and terminals on Essentials
+- Add a Wi-Fi section to Essentials with NetworkManager-wifi, wpa_supplicant
+  and linux-firmware, and enable NetworkManager when selected
+- Add Kate and KWrite to Communication & Productivity
+- Install opencode and Pi as normal selections instead of manual-only cards
+- Create user-scope desktop entries and icons for installed AppImages
+- Install the full qemu-system-x86 stack with VM Curator
+
 * Sun Oct 25 2026 LinuxGamerLife - 3.0.0-1
 - Rewrite the interface in GTK 4 (gtkmm) with libadwaita theming
 - Follow the desktop theme live, including the monospace font and dark mode

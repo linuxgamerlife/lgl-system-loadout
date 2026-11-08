@@ -4,7 +4,6 @@
 #include "ui/helpwindow.h"
 #include "ui/page.h"
 #include "ui/pages/donepage.h"
-#include "ui/pages/choicepage.h"
 #include "ui/pages/gpupage.h"
 #include "ui/pages/installpage.h"
 #include "ui/pages/reviewpage.h"
@@ -87,7 +86,7 @@ const std::vector<Step> &steps()
         {"welcome", "Welcome", "What this wizard will do to your system."},
         {"update", "System Update", "A full update is recommended before installing anything."},
         {"repositories", "Repositories", "RPM Fusion provides the packages most of this wizard installs."},
-        {"essentials", "Essentials", "A file manager and a terminal for everyday work."},
+        {"essentials", "Essentials", "A file manager, a terminal, and optional Wi-Fi support."},
         {"system-tools", "System Tools", "Essential command-line and system utilities."},
         {"remote-access", "Remote Access", "Stream games, control another machine, or reach your systems from anywhere."},
         {"development", "Development Tools", "Python, package managers, editors, and CLI utilities."},
@@ -275,7 +274,8 @@ void Window::buildPages()
 
     m_pages.push_back(new SelectPage(*catalog::page("repositories"), m_selection, m_checker,
                                      m_system, changed, notifyText));
-    m_pages.push_back(new ChoicePage(m_selection, m_checker, m_system, changed));
+    m_pages.push_back(new SelectPage(*catalog::page("essentials"), m_selection, m_checker,
+                                     m_system, changed, notifyText, false));
 
     for (const char *id : {"system-tools", "remote-access", "development", "multimedia", "content"})
         m_pages.push_back(new SelectPage(*catalog::page(id), m_selection, m_checker, m_system,

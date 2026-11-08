@@ -2,6 +2,7 @@
 
 #include "core/process.h"
 #include "core/protocol.h"
+#include "ui/appimagedesktop.h"
 
 #include <fcntl.h>
 #include <poll.h>
@@ -440,6 +441,15 @@ void HelperSession::run(PlanBuilder builder)
                     post([this, text] { m_log.emit(text); });
                 }
             }
+            if (ok && step.desktop) {
+                std::string error;
+                if (!writeAppImageDesktopEntry(*step.desktop, error)) {
+                    const std::string text =
+                        "WARNING: could not add the application menu entry: " + error;
+                    post([this, text] { m_log.emit(text); });
+                }
+            }
+
             stepOk[id] = ok;
             if (!ok && !step.optional)
                 ++errorCount;

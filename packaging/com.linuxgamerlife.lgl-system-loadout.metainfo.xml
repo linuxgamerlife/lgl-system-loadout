@@ -55,6 +55,19 @@
   </requires>
 
   <releases>
+    <release version="3.0.1" date="2026-11-08">
+      <description>
+        <p>Essentials is more flexible, AppImages now appear in the application menu, and the AI coding tools install normally.</p>
+        <ul>
+          <li>Select any number of file managers and terminals on Essentials</li>
+          <li>New Wi-Fi section with NetworkManager-wifi, wpa_supplicant, and linux-firmware</li>
+          <li>Kate and KWrite added to Communication &amp; Productivity</li>
+          <li>opencode and Pi can be selected and installed instead of copied by hand</li>
+          <li>AppImages create a user-scope desktop entry and icon after installation</li>
+          <li>VM Curator installs the full qemu-system-x86 stack</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.0.0" date="2026-10-25">
       <description>
         <p>The interface is now built with GTK 4, so it follows the desktop theme and does not need the Qt runtime.</p>

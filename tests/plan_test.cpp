@@ -141,8 +141,10 @@ void installsTheChosenEssentials()
 {
     SystemInfo system;
     Selection selection;
-    selection.setChoice("file-manager", "dolphin");
-    selection.setChoice("terminal", "kitty");
+    selection.set("choice:file-manager:dolphin", true);
+    selection.set("choice:file-manager:nemo", true);
+    selection.set("choice:terminal:kitty", true);
+    selection.set("choice:terminal:foot", true);
 
     const auto plan = buildPlan(selection, system, "/run/lgl-abc123");
     std::set<std::string> ids;
@@ -150,16 +152,60 @@ void installsTheChosenEssentials()
         ids.insert(step.id);
 
     g_assert_true(ids.count("essential_dolphin") == 1);
+    g_assert_true(ids.count("essential_nemo") == 1);
     g_assert_true(ids.count("essential_kitty") == 1);
-    g_assert_true(ids.count("essential_nemo") == 0);
-    g_assert_cmpint(estimateDiskMb(selection), ==, 20 + 20);
+    g_assert_true(ids.count("essential_foot") == 1);
+    g_assert_true(ids.count("essential_konsole") == 0);
+    g_assert_cmpint(estimateDiskMb(selection), ==, 20 + 15 + 20 + 5);
+}
+
+void installsWirelessSupport()
+{
+    SystemInfo system;
+    Selection selection;
+    selection.set("essentials/wifi_nm", true);
+    selection.set("essentials/wifi_wpa", true);
+    selection.set("essentials/wifi_firmware", true);
+
+    const auto plan = buildPlan(selection, system, "/run/lgl-abc123");
+    bool nm = false;
+    bool wpa = false;
+    bool firmware = false;
+    bool enabled = false;
+    for (const auto &step : plan) {
+        for (const auto &argument : step.command) {
+            nm = nm || argument == "NetworkManager-wifi";
+            wpa = wpa || argument == "wpa_supplicant";
+            firmware = firmware || argument == "linux-firmware";
+        }
+        enabled = enabled || step.id == "wifi_nm_enable";
+    }
+    g_assert_true(nm);
+    g_assert_true(wpa);
+    g_assert_true(firmware);
+    g_assert_true(enabled);
+}
+
+void installsTextEditors()
+{
+    SystemInfo system;
+    Selection selection;
+    selection.set("comms/kate", true);
+    selection.set("comms/kwrite", true);
+
+    const auto plan = buildPlan(selection, system, "/run/lgl-abc123");
+    std::set<std::string> ids;
+    for (const auto &step : plan)
+        ids.insert(step.id);
+    g_assert_true(ids.count("kate") == 1);
+    g_assert_true(ids.count("kwrite") == 1);
 }
 
 void installsGhosttyFromItsCopr()
 {
     SystemInfo system;
     Selection selection;
-    selection.setChoice("terminal", "ghostty");
+    selection.set("choice:terminal:ghostty", true);
 
     const auto plan = buildPlan(selection, system, "/run/lgl-abc123");
     std::size_t copr = plan.size();
@@ -247,6 +293,71 @@ void ignoresVersionGatedRequirements()
     g_assert_cmpuint(catalog::unmetRequirements(selection, 44).size(), ==, 1);
 }
 
+void installsTheVmCuratorQemuStack()
+{
+    SystemInfo system;
+    Selection selection;
+    selection.set("virt/vmcurator", true);
+
+    const auto plan = buildPlan(selection, system, "/run/lgl-abc123");
+    bool qemu = false;
+    for (const auto &step : plan)
+        for (const auto &argument : step.command)
+            qemu = qemu || argument == "qemu-system-x86";
+    g_assert_true(qemu);
+
+    SystemInfo arm;
+    arm.architecture = "aarch64";
+    const auto armPlan = buildPlan(selection, arm, "/run/lgl-abc123");
+    bool armQemu = false;
+    for (const auto &step : armPlan)
+        for (const auto &argument : step.command)
+            armQemu = armQemu || argument == "qemu-system-aarch64";
+    g_assert_true(armQemu);
+}
+
+void installsTheAiCodingToolsAsTheUser()
+{
+    SystemInfo system;
+    system.targetUser = "tester";
+    system.targetHome = "/home/tester";
+
+    Selection opencode;
+    opencode.set("development/opencode", true);
+    const auto opencodePlan = buildPlan(opencode, system, "/run/lgl-abc123");
+    bool downloaded = false;
+    bool installed = false;
+    bool linked = false;
+    for (const auto &step : opencodePlan) {
+        if (step.id == "opencode_download")
+            downloaded = std::any_of(step.command.begin(), step.command.end(), [](const auto &arg) {
+                return arg == "https://opencode.ai/install";
+            });
+        if (step.id == "opencode_install")
+            installed = step.local;
+        if (step.id == "opencode_link")
+            linked = std::any_of(step.command.begin(), step.command.end(), [](const auto &arg) {
+                return arg == "/home/tester/.local/bin/opencode";
+            });
+    }
+    g_assert_true(downloaded);
+    g_assert_true(installed);
+    g_assert_true(linked);
+
+    Selection pi;
+    pi.set("development/pi", true);
+    const auto piPlan = buildPlan(pi, system, "/run/lgl-abc123");
+    bool node = false;
+    bool piInstall = false;
+    for (const auto &step : piPlan) {
+        for (const auto &argument : step.command)
+            node = node || argument == "nodejs22";
+        piInstall = piInstall || step.id == "pi_install";
+    }
+    g_assert_true(node);
+    g_assert_true(piInstall);
+}
+
 void installsAppImagesAsTheUser()
 {
     SystemInfo system;
@@ -299,6 +410,33 @@ void installsAppImagesAsTheUser()
     }
 }
 
+void createsUserScopeDesktopEntries()
+{
+    SystemInfo system;
+    system.targetUser = "tester";
+    Selection selection;
+    selection.set("gaming/epic", true);
+    selection.set("content/audacity", true);
+    selection.set("comms/artcraft", true);
+
+    const auto plan = buildPlan(selection, system, "/run/lgl-abc123");
+    std::set<std::string> ids;
+    for (const auto &step : plan) {
+        if (!step.desktop)
+            continue;
+        ids.insert(step.desktop->id);
+        g_assert_true(step.desktop->home == "/home/tester");
+        g_assert_true(step.desktop->executable.rfind("/home/tester/Applications/", 0) == 0);
+        g_assert_false(step.desktop->iconResource.empty());
+        const auto contents = desktopFileContents(*step.desktop);
+        g_assert_true(contents.find("Exec=" + step.desktop->executable) != std::string::npos);
+        g_assert_true(contents.find("Icon=" + step.desktop->id) != std::string::npos);
+    }
+    g_assert_true(ids.count("com.epicgames.EpicGamesLauncher") == 1);
+    g_assert_true(ids.count("org.audacityteam.Audacity") == 1);
+    g_assert_true(ids.count("ai.storyteller.artcraft-launcher") == 1);
+}
+
 void usesTheArchitectureSpecificAppImage()
 {
     SystemInfo system;
@@ -335,8 +473,13 @@ int main(int argc, char **argv)
     g_test_add_func("/plan/fedora-43-names", usesOldPackageNamesBeforeFedora44);
     g_test_add_func("/plan/flatpak-needed", installsFlatpakOnlyWhenNeeded);
     g_test_add_func("/plan/essentials", installsTheChosenEssentials);
+    g_test_add_func("/plan/wifi", installsWirelessSupport);
+    g_test_add_func("/plan/editors", installsTextEditors);
     g_test_add_func("/plan/ghostty", installsGhosttyFromItsCopr);
+    g_test_add_func("/plan/vmcurator", installsTheVmCuratorQemuStack);
+    g_test_add_func("/plan/ai-tools", installsTheAiCodingToolsAsTheUser);
     g_test_add_func("/plan/appimages", installsAppImagesAsTheUser);
+    g_test_add_func("/plan/appimage-desktop", createsUserScopeDesktopEntries);
     g_test_add_func("/plan/appimage-arch", usesTheArchitectureSpecificAppImage);
     g_test_add_func("/plan/order", bootstrapRunsFirstAndCleanupLast);
     g_test_add_func("/plan/estimate", estimatesDiskSpace);

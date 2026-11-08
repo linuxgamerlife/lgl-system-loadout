@@ -54,10 +54,16 @@ InstallStep localStep(std::string id, std::string description, std::vector<std::
                        true};
 }
 
+std::string qemuSystemPackage(const SystemInfo &system)
+{
+    return system.architecture == "aarch64" ? "qemu-system-aarch64" : "qemu-system-x86";
+}
+
 // AppImages live in the user's ~/Applications, so every command here runs as the
 // user rather than through the helper.
 Steps appImageSteps(const std::string &id, const std::string &filename, const std::string &url,
-                    const SystemInfo &system, const std::string &sha256)
+                    const SystemInfo &system, const std::string &sha256,
+                    std::optional<DesktopEntry> desktop = std::nullopt)
 {
     const std::string home =
         system.targetHome.empty() ? "/home/" + system.targetUser : system.targetHome;
@@ -81,6 +87,11 @@ Steps appImageSteps(const std::string &id, const std::string &filename, const st
     auto executable = localStep(id + "_executable", "Make " + filename + " executable",
                                 {"/usr/bin/chmod", "+x", target});
     executable.dependsOn = id + "_publish";
+    if (desktop) {
+        desktop->executable = target;
+        desktop->home = home;
+        executable.desktop = std::move(desktop);
+    }
 
     return {
         localStep(id + "_directory", "Create " + directory,
@@ -127,6 +138,33 @@ Steps catalogSteps(const std::string &key, const SystemInfo &system, const std::
                       "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-" +
                           system.fedoraVersion + ".noarch.rpm"})};
 
+    if (key == "choice:file-manager:dolphin")
+        return {dnf("essential_dolphin", "Install Dolphin", {"dolphin"})};
+    if (key == "choice:file-manager:nemo")
+        return {dnf("essential_nemo", "Install Nemo", {"nemo"})};
+    if (key == "choice:terminal:konsole")
+        return {dnf("essential_konsole", "Install Konsole", {"konsole"})};
+    if (key == "choice:terminal:kitty")
+        return {dnf("essential_kitty", "Install Kitty", {"kitty"})};
+    if (key == "choice:terminal:foot")
+        return {dnf("essential_foot", "Install Foot", {"foot"})};
+    if (key == "choice:terminal:ghostty")
+        return {step("copr_ghostty", "Enable the Ghostty COPR",
+                     {"/usr/bin/dnf", "copr", "enable", "-y", "scottames/ghostty"}),
+                dnf("essential_ghostty", "Install Ghostty", {"ghostty"})};
+
+    if (key == "essentials/wifi_nm")
+        return {dnf("wifi_nm", "Install NetworkManager Wi-Fi support",
+                    {"NetworkManager-wifi"}),
+                step("wifi_nm_enable", "Enable NetworkManager",
+                     {"/usr/bin/systemctl", "enable", "--now", "NetworkManager"})};
+    if (key == "essentials/wifi_wpa")
+        return {dnf("wifi_wpa", "Install wpa_supplicant", {"wpa_supplicant"})};
+    if (key == "essentials/wifi_firmware")
+        return {step("wifi_firmware", "Install linux-firmware", {"/usr/bin/dnf", "-y", "install",
+                                                                 "linux-firmware"},
+                     false, {"/usr/bin/rpm", "-q", "--quiet", "linux-firmware"})};
+
     if (key == "systools/moonlight")
         return {flathub("flatpak_moonlight", "Moonlight", "com.moonlight_stream.Moonlight")};
     if (key == "systools/sunshine")
@@ -160,6 +198,64 @@ Steps catalogSteps(const std::string &key, const SystemInfo &system, const std::
     if (key == "python/github_desktop")
         return {flathub("flatpak_github_desktop", "GitHub Desktop", "io.github.shiftey.Desktop")};
 
+    if (key == "development/opencode" || key == "development/pi") {
+        const std::string home =
+            system.targetHome.empty() ? "/home/" + system.targetUser : system.targetHome;
+        const std::string cache = home + "/.cache/lgl-system-loadout";
+        const std::string script =
+            cache + (key == "development/opencode" ? "/opencode-install.sh" : "/pi-install.sh");
+        const std::string url = key == "development/opencode"
+                                    ? "https://opencode.ai/install"
+                                    : "https://pi.dev/install.sh";
+        const std::string id = key == "development/opencode" ? "opencode" : "pi";
+        const std::string name = key == "development/opencode" ? "opencode" : "Pi";
+
+        Steps steps;
+        if (key == "development/pi") {
+            auto node = dnf("pi_node", "Install Node.js and npm", {"nodejs22", "nodejs22-npm"});
+            node.alreadyInstalledCheck = {"/usr/bin/rpm", "-q", "--quiet", "nodejs22",
+                                          "nodejs22-npm"};
+            steps.push_back(std::move(node));
+        }
+
+        steps.push_back(localStep(id + "_cache", "Create the installer cache directory",
+                                  {"/usr/bin/mkdir", "-p", cache}));
+        auto download = localStep(id + "_download", "Download the " + name + " installer",
+                                  {"/usr/bin/curl", "-fsSL", "--proto", "=https", "--retry", "3",
+                                   "--connect-timeout", "30", "--max-time", "300", "-o", script,
+                                   url});
+        download.dependsOn = id + "_cache";
+        steps.push_back(std::move(download));
+
+        auto install = localStep(
+            id + "_install", "Install " + name,
+            {key == "development/opencode" ? "/usr/bin/bash" : "/bin/sh", script});
+        if (key == "development/opencode")
+            install.command.push_back("--no-modify-path");
+        install.dependsOn = id + "_download";
+        steps.push_back(std::move(install));
+
+        if (key == "development/opencode") {
+            auto bindir = localStep("opencode_bindir", "Create ~/.local/bin",
+                                    {"/usr/bin/mkdir", "-p", home + "/.local/bin"});
+            bindir.dependsOn = "opencode_install";
+            steps.push_back(std::move(bindir));
+
+            auto link = localStep("opencode_link", "Link opencode into ~/.local/bin",
+                                  {"/usr/bin/ln", "-sfn", home + "/.opencode/bin/opencode",
+                                   home + "/.local/bin/opencode"});
+            link.dependsOn = "opencode_bindir";
+            steps.push_back(std::move(link));
+        }
+
+        auto cleanup = localStep(id + "_cleanup", "Remove the " + name + " installer",
+                                 {"/usr/bin/rm", "-f", script});
+        cleanup.dependsOn = id + "_install";
+        cleanup.optional = true;
+        steps.push_back(std::move(cleanup));
+        return steps;
+    }
+
     if (key == "media/ffmpeg")
         return {step("ffmpeg_swap", "Swap ffmpeg-free for the full ffmpeg",
                      {"/usr/bin/dnf", "swap", "-y", "ffmpeg-free", "ffmpeg", "--allowerasing"})};
@@ -184,14 +280,20 @@ Steps catalogSteps(const std::string &key, const SystemInfo &system, const std::
                 "audacity-linux-4.0.1-aarch64.AppImage",
                 system,
                 // SHA-256 from the Audacity-4.0.1 CHECKSUMS.txt.
-                "3abc517f26f00197eaac9c4e56b35dc53d8e933764b41077950e8526cd4aa075");
+                "3abc517f26f00197eaac9c4e56b35dc53d8e933764b41077950e8526cd4aa075",
+                DesktopEntry{"org.audacityteam.Audacity", "Audacity", "Record and edit audio",
+                             "", "/com/linuxgamerlife/loadout/icons/audacity.png", "",
+                             "AudioVideo;Audio;"});
         return appImageSteps(
             "audacity", "audacity-linux-4.0.1-x86_64.AppImage",
             "https://github.com/audacity/audacity/releases/download/Audacity-4.0.1/"
             "audacity-linux-4.0.1-x86_64.AppImage",
             system,
             // SHA-256 from the Audacity-4.0.1 CHECKSUMS.txt.
-            "ca2f04f172124d1f18ac608749854c5d31f04ab266a758c348190c05d9b2087c");
+            "ca2f04f172124d1f18ac608749854c5d31f04ab266a758c348190c05d9b2087c",
+            DesktopEntry{"org.audacityteam.Audacity", "Audacity", "Record and edit audio", "",
+                         "/com/linuxgamerlife/loadout/icons/audacity.png", "",
+                         "AudioVideo;Audio;"});
     }
     if (key == "content/ytdlp")
         return {pipx("pipx_ytdlp", "yt-dlp", user)};
@@ -238,7 +340,11 @@ Steps catalogSteps(const std::string &key, const SystemInfo &system, const std::
             "epic", "EpicGamesLauncher-x86_64.AppImage",
             "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/"
             "download/EpicGamesLauncher-x86_64.AppImage",
-            system, {});    if (key == "gaming/protonplus")
+            system, {},
+            DesktopEntry{"com.epicgames.EpicGamesLauncher", "Epic Games Launcher",
+                         "Play games from the Epic Games Store", "",
+                         "/com/linuxgamerlife/loadout/icons/epic.png", "", "Game;"});
+    if (key == "gaming/protonplus")
         return {flathub("flatpak_protonplus", "ProtonPlus", "com.vysp3r.ProtonPlus")};
     if (key == "gaming/protonup")
         return {flathub("flatpak_protonup", "ProtonUp-Qt", "net.davidotek.pupgui2")};
@@ -256,9 +362,10 @@ Steps catalogSteps(const std::string &key, const SystemInfo &system, const std::
     if (key == "virt/virt_viewer")
         return {dnf("virt_virt_viewer", "Install virt-viewer", {"virt-viewer"})};
     if (key == "virt/vmcurator") {
-        const std::vector<std::string> bundle{"vm-curator", "edk2-ovmf", "virt-viewer",
-                                              "qemu-ui-sdl", "passt", "swtpm", "dnsmasq",
-                                              "iproute", "nftables"};
+        const std::vector<std::string> bundle{"vm-curator", qemuSystemPackage(system),
+                                              "edk2-ovmf", "virt-viewer", "qemu-ui-sdl",
+                                              "passt", "swtpm", "dnsmasq", "iproute",
+                                              "nftables"};
         std::vector<std::string> command{"/usr/bin/dnf", "-y", "install"};
         std::vector<std::string> check{"/usr/bin/rpm", "-q", "--quiet"};
         command.insert(command.end(), bundle.begin(), bundle.end());
@@ -314,6 +421,10 @@ Steps catalogSteps(const std::string &key, const SystemInfo &system, const std::
                      {"/usr/bin/dnf", "copr", "enable", "-y", "imput/helium"}),
                 dnf("helium_install", "Install Helium", {"helium-bin"})};
 
+    if (key == "comms/kate")
+        return {dnf("kate", "Install Kate", {"kate"})};
+    if (key == "comms/kwrite")
+        return {dnf("kwrite", "Install KWrite", {"kwrite"})};
     if (key == "comms/office_calc")
         return {dnf("office_calc", "Install LibreOffice Calc", {"libreoffice-calc"})};
     if (key == "comms/office_writer")
@@ -337,14 +448,22 @@ Steps catalogSteps(const std::string &key, const SystemInfo &system, const std::
                 "artcraft-launcher-0.7.0-linux-aarch64.AppImage",
                 system,
                 // SHA-256 computed from the v0.7.0 aarch64 release asset.
-                "82fb86a4c078c8dee3e167de2eca704e178a8b8f0d8273aab57cf7ede0fa69b4");
+                "82fb86a4c078c8dee3e167de2eca704e178a8b8f0d8273aab57cf7ede0fa69b4",
+                DesktopEntry{"ai.storyteller.artcraft-launcher", "ArtCraft Launcher",
+                             "Install, update and launch the Craft App Suite", "",
+                             "/com/linuxgamerlife/loadout/icons/artcraft.png", "",
+                             "Utility;PackageManager;"});
         return appImageSteps(
             "artcraft", "artcraft-launcher-0.7.0-linux-x86_64.AppImage",
             "https://github.com/storytold/craft-launcher/releases/download/v0.7.0/"
             "artcraft-launcher-0.7.0-linux-x86_64.AppImage",
             system,
             // SHA-256 computed from the v0.7.0 x86_64 release asset.
-            "f80b9bdcfeb92bc88a54d07e7f2e03f1880f3fcf25c1511864b3d4118ecee1d8");
+            "f80b9bdcfeb92bc88a54d07e7f2e03f1880f3fcf25c1511864b3d4118ecee1d8",
+            DesktopEntry{"ai.storyteller.artcraft-launcher", "ArtCraft Launcher",
+                         "Install, update and launch the Craft App Suite", "",
+                         "/com/linuxgamerlife/loadout/icons/artcraft.png", "",
+                         "Utility;PackageManager;"});
     }
 
     if (key == "cachyos/kernel")
@@ -435,19 +554,14 @@ std::vector<InstallStep> buildPlan(const Selection &selection, const SystemInfo 
         if (selected(key))
             add(key);
 
-    // Essentials: one file manager and one terminal, if chosen.
-    for (const auto &group : catalog::choiceGroups()) {
-        const auto &chosen = selection.choice(group.id);
-        for (const auto &option : group.options)
-            if (option.value == chosen) {
-                if (!option.copr.empty())
-                    plan.push_back(step("copr_" + option.value,
-                                        "Enable the " + option.label + " repository",
-                                        {"/usr/bin/dnf", "copr", "enable", "-y", option.copr}));
-                plan.push_back(dnf("essential_" + option.value, "Install " + option.label,
-                                   {option.package.c_str()}));
-            }
-    }
+    // Essentials: any combination of file managers, terminals and Wi-Fi support.
+    for (const char *key :
+         {"choice:file-manager:dolphin", "choice:file-manager:nemo",
+          "choice:terminal:konsole", "choice:terminal:kitty", "choice:terminal:foot",
+          "choice:terminal:ghostty", "essentials/wifi_nm", "essentials/wifi_wpa",
+          "essentials/wifi_firmware"})
+        if (selected(key))
+            add(key);
 
     for (const char *key :
          {"systools/fastfetch", "systools/btop", "systools/cmatrix", "systools/distrobox",
@@ -470,6 +584,9 @@ std::vector<InstallStep> buildPlan(const Selection &selection, const SystemInfo 
         add("python/zed");
     if (selected("python/github_desktop"))
         add("python/github_desktop");
+    for (const char *key : {"development/opencode", "development/pi"})
+        if (selected(key))
+            add(key);
 
     for (const char *key :
          {"media/ffmpeg", "media/gst_bad_nonfree", "media/gst_bad_free_extras", "media/vlc"})
@@ -524,9 +641,9 @@ std::vector<InstallStep> buildPlan(const Selection &selection, const SystemInfo 
         if (selected(key))
             add(key);
 
-    for (const char *key : {"comms/office_calc", "comms/office_writer", "comms/discord",
-                            "comms/telegram", "comms/spotify", "comms/lgl_cliamp",
-                            "comms/artcraft"})
+    for (const char *key : {"comms/office_calc", "comms/office_writer", "comms/kate",
+                            "comms/kwrite", "comms/discord", "comms/telegram",
+                            "comms/spotify", "comms/lgl_cliamp", "comms/artcraft"})
         if (selected(key))
             add(key);
 
@@ -572,13 +689,6 @@ int estimateDiskMb(const Selection &selection)
         if (selection.get(entry->key))
             megabytes += entry->diskMb;
 
-    for (const auto &group : catalog::choiceGroups()) {
-        const auto &chosen = selection.choice(group.id);
-        for (const auto &option : group.options)
-            if (option.value == chosen)
-                megabytes += option.diskMb;
-    }
-
     if (needsFlatpak(selection))
         megabytes += 200;
     return megabytes;
@@ -589,6 +699,17 @@ Check checkFor(const std::string &key, const SystemInfo &system)
     const int version = fedora(system);
 
     static const std::map<std::string, std::string> rpmPackages{
+        {"choice:file-manager:dolphin", "dolphin"},
+        {"choice:file-manager:nemo", "nemo"},
+        {"choice:terminal:konsole", "konsole"},
+        {"choice:terminal:kitty", "kitty"},
+        {"choice:terminal:foot", "foot"},
+        {"choice:terminal:ghostty", "ghostty"},
+        {"essentials/wifi_nm", "NetworkManager-wifi"},
+        {"essentials/wifi_wpa", "wpa_supplicant"},
+        {"essentials/wifi_firmware", "linux-firmware"},
+        {"comms/kate", "kate"},
+        {"comms/kwrite", "kwrite"},
         {"repos/rpmfusion_free", "rpmfusion-free-release"},
         {"repos/rpmfusion_nonfree", "rpmfusion-nonfree-release"},
         {"systools/fastfetch", "fastfetch"},
@@ -697,6 +818,24 @@ Check checkFor(const std::string &key, const SystemInfo &system)
         check.any.push_back({"/usr/bin/test", "-x", "/usr/local/bin/cbonsai"});
         check.any.push_back(
             {"/usr/bin/test", "-x", "/home/" + system.targetUser + "/.local/bin/cbonsai"});
+        return check;
+    }
+    if (key == "development/opencode" || key == "development/pi") {
+        const std::string home =
+            system.targetHome.empty() ? "/home/" + system.targetUser : system.targetHome;
+        const std::string binary = key == "development/opencode" ? "opencode" : "pi";
+        Check check;
+        check.any.push_back({"/usr/bin/test", "-x", home + "/.local/bin/" + binary});
+        if (key == "development/opencode")
+            check.any.push_back({"/usr/bin/test", "-x", home + "/.opencode/bin/opencode"});
+        check.any.push_back({"/usr/bin/test", "-x", "/usr/local/bin/" + binary});
+        check.any.push_back({"/usr/bin/test", "-x", "/usr/bin/" + binary});
+        return check;
+    }
+    if (key == "virt/vmcurator") {
+        Check check;
+        check.any.push_back({"/usr/bin/rpm", "-q", "--quiet", "vm-curator",
+                             qemuSystemPackage(system)});
         return check;
     }
     if (key == "systools/moonlight" || key == "systools/sunshine") {

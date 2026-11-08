@@ -65,12 +65,12 @@ because `%check` validates both files.
 
 The version is defined in two places and must stay in sync:
 
-- `CMakeLists.txt`: `project(lgl-system-loadout VERSION 3.0.0 ...)`
-- `packaging/lgl-system-loadout.spec`: `Version: 3.0.0`, `Release: 1%{?dist}`
+- `CMakeLists.txt`: `project(lgl-system-loadout VERSION 3.0.1 ...)`
+- `packaging/lgl-system-loadout.spec`: `Version: 3.0.1`, `Release: 1%{?dist}`
 
 `LOADOUT_VERSION` is compiled from the CMake project version. The same version
 appears in the metainfo release entry and in `CHANGELOG.md`. The current package
-is **3.0.0-1**; release numbers are not separate application versions.
+is **3.0.1-1**; release numbers are not separate application versions.
 
 ## Reference audit
 
@@ -111,6 +111,14 @@ each. Everything not listed follows the standard.
 - **GUI application icons are bundled** in `data/icons/` and exposed through an
   icon theme resource path, so cards look right before an app is installed.
   Attribution and licences are in `data/icons/ATTRIBUTION.md`.
+- **AppImages get user-scope desktop entries.** The last AppImage step carries
+  desktop metadata; after it succeeds, `ui/appimagedesktop.cpp` writes a
+  `.desktop` file and a 256x256 icon under `~/.local/share`, so the launcher
+  appears in the menu without being run first.
+- **opencode and Pi install as local steps.** Both run their official installers
+  as the normal user, not through the helper. Pi installs `nodejs22` and
+  `nodejs22-npm` first; opencode is linked into `~/.local/bin` with
+  `--no-modify-path`.
 - **The application stylesheet is reloaded on theme changes.** GTK loads the
   user's `gtk-4.0/gtk.css` only once, so `ThemeWatcher` re-parses the app
   stylesheet and watches both AdwStyleManager and GtkSettings. This keeps the

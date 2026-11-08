@@ -57,12 +57,15 @@ struct Section final {
     std::string title;
     std::vector<Item> items;
     std::vector<ManualOption> manual;
+    // Optional text shown under the section heading, before the cards.
+    std::string note;
 
     Section(std::string sectionTitle, std::vector<Item> sectionItems,
-            std::vector<ManualOption> manualOptions = {})
+            std::vector<ManualOption> manualOptions = {}, std::string sectionNote = {})
         : title(std::move(sectionTitle))
         , items(std::move(sectionItems))
         , manual(std::move(manualOptions))
+        , note(std::move(sectionNote))
     {
     }
 };
@@ -97,44 +100,6 @@ const std::vector<Page> &pages();
 const Page *page(const std::string &id);
 const Item *item(const std::string &key);
 std::vector<const Item *> allItems();
-
-// A page-level single choice, such as the file manager or terminal.
-struct ChoiceOption final {
-    std::string value;        // stored in Selection::choice()
-    std::string label;
-    std::string description;
-    std::string package;      // dnf package
-    std::string glyph;        // symbolic icon for the generated tile
-    int diskMb{0};
-    bool lglChoice{false};
-    std::string source{"Fedora"};
-    std::string copr;         // COPR project to enable first, if any
-
-    ChoiceOption(std::string optionValue, std::string optionLabel, std::string optionDescription,
-                 std::string optionPackage, std::string optionGlyph, const int megabytes,
-                 const bool isChoice = false, std::string optionSource = "Fedora",
-                 std::string optionCopr = {})
-        : value(std::move(optionValue))
-        , label(std::move(optionLabel))
-        , description(std::move(optionDescription))
-        , package(std::move(optionPackage))
-        , glyph(std::move(optionGlyph))
-        , diskMb(megabytes)
-        , lglChoice(isChoice)
-        , source(std::move(optionSource))
-        , copr(std::move(optionCopr))
-    {
-    }
-};
-
-struct ChoiceGroup final {
-    std::string id;           // "file-manager", "terminal"
-    std::string title;
-    std::string description;
-    std::vector<ChoiceOption> options;
-};
-
-const std::vector<ChoiceGroup> &choiceGroups();
 
 PageExtras extrasFor(const std::string &pageId, const SystemInfo &system);
 

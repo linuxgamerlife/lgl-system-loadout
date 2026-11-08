@@ -35,7 +35,7 @@ the Flatpak update are separate sessions and ask once each.
 
 The System Update step comes first, and the remaining steps stay hidden until it
 has run or you have confirmed skipping it. The current package release is
-**3.0.0-1**.
+**3.0.1-1**.
 
 ---
 
@@ -62,8 +62,8 @@ Download the RPM matching your Fedora release from the
 [latest GitHub release](https://github.com/linuxgamerlife/lgl-system-loadout/releases/latest)
 and open it in Discover.
 
-- `lgl-system-loadout-3.0.0-1.fc45.x86_64.rpm` (Fedora 45)
-- Use the matching `fc43` or `fc44` build on older releases.
+- `lgl-system-loadout-3.0.1-1.fc45.x86_64.rpm` (Fedora 45)
+- Use the `fc44` for Fedora 44.
 
 After installing from Discover, close it and launch the app from your
 application menu rather than from the Discover install screen.
@@ -82,7 +82,7 @@ without a desktop environment needs one: Noctalia's built-in agent lives under
 |---|---|
 | **Welcome and System Update** | Fedora version, target account, and the recommended full update before anything else |
 | **Repositories** | RPM Fusion Free and NonFree |
-| **Essentials** | One file manager (Dolphin or Nemo) and one terminal (Konsole, Kitty, Foot or Ghostty) |
+| **Essentials** | Any number of file managers (Dolphin, Nemo) and terminals (Konsole, Kitty, Foot, Ghostty), plus optional Wi-Fi support |
 | **System Tools** | btop, fastfetch, cmatrix, cbonsai, podman, tldr, distrobox, timeshift, Flatseal, plus two tweaks |
 | **Remote Access** | Parsec, Moonlight, Sunshine (Flatpak), Tailscale |
 | **Development Tools** | pip, pipx, git, Zed (Flatpak or the zed.dev build), GitHub Desktop, opencode, pi |
@@ -92,7 +92,7 @@ without a desktop environment needs one: Noctalia's built-in agent lives under
 | **Gaming** | Steam, Lutris, Wine, Protontricks, GOverlay, controller support, Heroic, Epic, Faugus, ProtonPlus, ProtonUp-Qt |
 | **Virtualisation** | virt-manager, libvirt, virt-install, virt-viewer, LGL VM Curator |
 | **Browsers** | Vivaldi, Helium, Chromium, Edge, Brave, Chrome · Firefox, LibreWolf, Waterfox, Zen, Floorp |
-| **Communication** | ArtCraft Launcher, LibreOffice Calc and Writer, Discord, Telegram, Spotify, LGL CLIamp |
+| **Communication** | ArtCraft Launcher, Kate and KWrite, LibreOffice Calc and Writer, Discord, Telegram, Spotify, LGL CLIamp |
 | **CachyOS Kernel** | kernel-cachyos, kernel-cachyos-devel-matched |
 | **LGL Tool Kit** | Scheduler Manager, DNF Helper, Emoji Picker, Colour Picker, Power Profile Manager, Papercutter, Keychron Helper |
 | **Review Selections** | The complete plan and a disk-space check |
@@ -102,7 +102,9 @@ without a desktop environment needs one: Noctalia's built-in agent lives under
 AppImages are downloaded atomically as your normal user into `~/Applications`,
 verified against pinned SHA-256 checksums where the vendor provides one, and
 made executable. Audacity and ArtCraft have x86_64 and aarch64 assets; Epic is
-x86_64 only. They are not managed by dnf, so they update themselves.
+x86_64 only. Each installed AppImage also gets a desktop entry and icon under
+`~/.local/share`, so it appears in the application menu immediately. They are
+not managed by dnf, so they update themselves.
 
 ---
 

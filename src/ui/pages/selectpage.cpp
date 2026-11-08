@@ -31,7 +31,7 @@ std::string withTokens(std::string value, const std::string &user, const std::st
 
 SelectPage::SelectPage(const catalog::Page &definition, Selection &selection, Checker &checker,
                        const SystemInfo &system, std::function<void()> selectionChanged,
-                       Notify notify)
+                       Notify notify, const bool showSelectAll)
     : m_definition(definition)
     , m_selection(selection)
     , m_checker(checker)
@@ -64,10 +64,12 @@ SelectPage::SelectPage(const catalog::Page &definition, Selection &selection, Ch
     });
     toolbar->append(*refresh);
 
-    auto *all = Gtk::make_managed<Gtk::Button>("Select All");
-    all->add_css_class("lo-small");
-    all->signal_clicked().connect([this] { setAll(true); });
-    toolbar->append(*all);
+    if (showSelectAll) {
+        auto *all = Gtk::make_managed<Gtk::Button>("Select All");
+        all->add_css_class("lo-small");
+        all->signal_clicked().connect([this] { setAll(true); });
+        toolbar->append(*all);
+    }
 
     auto *none = Gtk::make_managed<Gtk::Button>("Select None");
     none->add_css_class("lo-small");
@@ -141,6 +143,15 @@ void SelectPage::addSection(const catalog::Section &section)
         append(*heading);
     }
 
+    if (!section.note.empty()) {
+        auto *note = Gtk::make_managed<Gtk::Label>(section.note);
+        note->set_xalign(0.0f);
+        note->set_wrap(true);
+        note->add_css_class("muted");
+        note->add_css_class("small");
+        append(*note);
+    }
+
     auto *grid = Gtk::make_managed<CardGrid>();
     grid->setActivated([this](Gtk::FlowBoxChild &child) { activate(child); });
     grid->signalLeaveLeft().connect([this] { signalFocusSteps().emit(); });
@@ -159,8 +170,8 @@ void SelectPage::addSection(const catalog::Section &section)
 
 void SelectPage::addCard(const catalog::Item &item, CardGrid &grid)
 {
-    if (item.key == "gaming/epic" && !m_system.architecture.empty() &&
-        m_system.architecture != "x86_64")
+    const bool x86Only = item.key == "gaming/epic" || item.key == "virt/vmcurator";
+    if (x86Only && !m_system.architecture.empty() && m_system.architecture != "x86_64")
         return;
 
     auto *card = Gtk::make_managed<ItemCard>();

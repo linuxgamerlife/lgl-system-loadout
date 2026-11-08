@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(lgl-system-loadout VERSION 3.0.0 LANGUAGES C CXX)
+project(lgl-system-loadout VERSION 3.0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -64,6 +64,7 @@ target_link_libraries(loadout_protocol PUBLIC PkgConfig::JSON_GLIB)
 # ---------------------------------------------------------------------------
 add_library(loadout_core STATIC
     src/core/catalog.cpp   src/core/catalog.h
+    src/core/desktop.cpp   src/core/desktop.h
     src/core/plan.cpp      src/core/plan.h
     src/core/process.cpp   src/core/process.h
     src/core/selection.cpp src/core/selection.h
@@ -92,10 +93,10 @@ add_executable(lgl-system-loadout
     src/ui/itemcard.cpp      src/ui/itemcard.h
     src/ui/cardgrid.cpp      src/ui/cardgrid.h
     src/ui/checker.cpp      src/ui/checker.h
+    src/ui/appimagedesktop.cpp src/ui/appimagedesktop.h
     src/ui/helpersession.cpp src/ui/helpersession.h
     src/ui/page.cpp          src/ui/page.h
     src/ui/pages/welcomepage.cpp src/ui/pages/welcomepage.h
-    src/ui/pages/choicepage.cpp  src/ui/pages/choicepage.h
     src/ui/pages/selectpage.cpp  src/ui/pages/selectpage.h
     src/ui/pages/gpupage.cpp     src/ui/pages/gpupage.h
     src/ui/pages/updatepage.cpp  src/ui/pages/updatepage.h

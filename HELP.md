@@ -59,10 +59,10 @@ system. After that you can move between steps freely, and your choices are kept.
 - **Welcome** - your Fedora version and the account user-level tools install for.
 - **System Update** - a full update, recommended before anything else.
 - **Repositories** - RPM Fusion Free and NonFree.
-- **Essentials** - one file manager and one terminal, or neither.
+- **Essentials** - any number of file managers and terminals, plus optional Wi-Fi support for laptops.
 - **System Tools** - command-line and desktop utilities, plus two system tweaks.
 - **Remote Access** - Moonlight, Sunshine, Parsec and Tailscale.
-- **Development Tools** - Python tooling, git, Zed, GitHub Desktop, opencode, pi.
+- **Development Tools** - Python tooling, git, Zed, GitHub Desktop, opencode and Pi.
 - **Multimedia & Codecs** - ffmpeg, GStreamer plugins and VLC.
 - **Content Creation** - OBS Studio, the Audacity 4.0.1 AppImage, yt-dlp, and
   pointers to FilmCraft and SoundCraft through the ArtCraft launcher.
@@ -71,7 +71,7 @@ system. After that you can move between steps freely, and your choices are kept.
 - **Gaming** - launchers, compatibility tools, overlays and controller support.
 - **Virtualisation** - the KVM/QEMU stack, viewers and LGL VM Curator.
 - **Browsers** - Chromium-based and Mozilla-based browsers, grouped by engine.
-- **Communication** - the ArtCraft launcher, office, chat and music applications.
+- **Communication** - the ArtCraft launcher, Kate and KWrite, office, chat and music applications.
 - **CachyOS Kernel** - an optional performance kernel. Secure Boot must be off.
   Selecting the kernel or its matching headers also enables the SELinux
   `domain_kernel_load_modules` boolean permanently.
@@ -84,6 +84,13 @@ A **Continue** button sits at the bottom left of the content area on steps that
 have a next step. It appears when the step is ready and is hidden on Welcome and
 Setup Complete. It moves you to the next step, including after the system update
 and after the installation.
+
+## Wi-Fi
+
+The Wi-Fi section on Essentials is optional. It installs NetworkManager-wifi,
+wpa_supplicant and linux-firmware, and enables NetworkManager if it is not
+already enabled. Select it on a laptop that is currently using Ethernet and will
+need wireless later.
 
 ## The password prompt
 
@@ -99,7 +106,12 @@ asks once. Accepting the Flatpak update prompt is another session, and so are
 the Reboot buttons.
 
 AppImages are the exception: they are downloaded into your own `~/Applications`
-folder as you, with no password.
+folder as you, with no password. After the download, the app adds a desktop
+entry and icon under `~/.local/share`, so the launcher appears in your
+application menu without running it first.
+
+opencode and Pi also install as you, into your home directory. Pi installs
+Node.js and npm first through the normal package session.
 
 ## Shortcuts
 
