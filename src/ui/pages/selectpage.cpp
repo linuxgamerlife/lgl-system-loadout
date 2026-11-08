@@ -170,8 +170,8 @@ void SelectPage::addSection(const catalog::Section &section)
 
 void SelectPage::addCard(const catalog::Item &item, CardGrid &grid)
 {
-    const bool x86Only = item.key == "gaming/epic" || item.key == "virt/vmcurator";
-    if (x86Only && !m_system.architecture.empty() && m_system.architecture != "x86_64")
+    if (item.key == "virt/vmcurator" && !m_system.architecture.empty() &&
+        m_system.architecture != "x86_64")
         return;
 
     auto *card = Gtk::make_managed<ItemCard>();

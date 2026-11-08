@@ -65,6 +65,7 @@
           <li>opencode and Pi can be selected and installed instead of copied by hand</li>
           <li>AppImages create a user-scope desktop entry and icon after installation</li>
           <li>VM Curator installs the full qemu-system-x86 stack</li>
+          <li>Epic Games Launcher removed because Epic no longer publishes a Linux AppImage; Heroic Games Launcher remains available</li>
         </ul>
       </description>
     </release>

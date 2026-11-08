@@ -1,7 +1,5 @@
 # Bundled icon attribution
 
-- `epic.png` - Epic Games logo, © Epic Games, Inc. Used only to identify the
-  Epic Games Launcher. Trademark of Epic Games, Inc.
 - `audacity.png` - Audacity icon, © Audacity Team / Muse Group, GPL-2.0-or-later.
   Copied from the app's own Flathub artwork.
 - `vm-curator.png` - LGL VM Curator icon, © Mark Roboff, MIT License. Taken from

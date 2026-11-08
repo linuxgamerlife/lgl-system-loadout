@@ -269,10 +269,6 @@ const std::vector<Page> &build()
                      "Open gaming platform for managing games from GOG, itch.io, and more.", 50),
                entry("gaming/heroic", "Heroic Games Launcher",
                      "Open-source launcher for the Epic Games Store and GOG.", 200),
-               entry("gaming/epic", "Epic Games Launcher",
-                     "The official Epic Games Launcher AppImage, installed to ~/Applications. "
-                     "Available for x86_64 only.",
-                     250),
            }},
           {"Windows Compatibility",
            {
@@ -545,7 +541,6 @@ std::vector<std::string> iconNamesFor(const std::string &key)
         {"gaming/protontricks", {"protontricks"}},
         {"gaming/goverlay", {"goverlay"}},
         {"gaming/heroic", {"com.heroicgameslauncher.hgl", "heroic"}},
-        {"gaming/epic", {"EpicGamesLauncher", "epicgameslauncher"}},
         {"gaming/protonplus", {"com.vysp3r.ProtonPlus"}},
         {"gaming/protonup", {"net.davidotek.pupgui2"}},
         {"gaming/faugus", {"io.github.Faugus.faugus-launcher", "faugus-launcher"}},
@@ -592,8 +587,6 @@ std::vector<std::string> iconNamesFor(const std::string &key)
 
 std::string iconResourceFor(const std::string &key)
 {
-    if (key == "gaming/epic")
-        return "/com/linuxgamerlife/loadout/icons/epic.png";
     if (key == "content/audacity")
         return "/com/linuxgamerlife/loadout/icons/audacity.png";
     if (key == "manual:FilmCraft")
@@ -676,7 +669,7 @@ std::string sourceFor(const std::string &key)
         {"gaming/kernel_modules_extra", "Fedora"},
         {"gaming/steam", "RPM Fusion"},          {"gaming/lutris", "Fedora"},
         {"gaming/faugus", "COPR"},               {"gaming/heroic", "COPR"},
-        {"gaming/epic", "AppImage"},             {"gaming/wine", "Fedora"},
+        {"gaming/wine", "Fedora"},
         {"gaming/protontricks", "Fedora"},       {"gaming/protonplus", "Flatpak"},
         {"gaming/protonup", "Flatpak"},          {"gaming/goverlay", "LGL Essentials COPR"},
 
@@ -824,11 +817,6 @@ PageExtras extrasFor(const std::string &pageId, const SystemInfo &system)
             "FLATPAK",
             "Flatpak and the Flathub remote are configured automatically if any Flatpak item is "
             "selected here or elsewhere in this wizard.");
-        if (!system.architecture.empty() && system.architecture != "x86_64")
-            extras.notes.emplace_back(
-                "EPIC GAMES LAUNCHER",
-                "The Epic Games Launcher AppImage is available for x86_64 only, so it is not "
-                "offered on this system.");
     }
 
     if (pageId == "content")

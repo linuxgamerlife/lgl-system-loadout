@@ -13,7 +13,11 @@
 - Wi-Fi section on Essentials with NetworkManager-wifi, wpa_supplicant and linux-firmware; NetworkManager is enabled when it is selected
 - Kate and KWrite under Communication & Productivity > Text Editors
 
+### Removed
+- Epic Games Launcher, because Epic no longer publishes a Linux AppImage; Heroic Games Launcher remains available for the Epic Games Store
+
 ### Fixed
+- opencode installs tar first because its installer needs it
 - VM Curator installs the full qemu-system-x86 stack with its runtime support and is hidden on non-x86_64 systems, matching its x86_64-only COPR
 - The installed badge for VM Curator now also checks the QEMU system package
 - linux-firmware is skipped when it is already installed

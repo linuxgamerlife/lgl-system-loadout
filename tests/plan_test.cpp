@@ -328,7 +328,10 @@ void installsTheAiCodingToolsAsTheUser()
     bool downloaded = false;
     bool installed = false;
     bool linked = false;
+    bool tar = false;
     for (const auto &step : opencodePlan) {
+        for (const auto &argument : step.command)
+            tar = tar || argument == "tar";
         if (step.id == "opencode_download")
             downloaded = std::any_of(step.command.begin(), step.command.end(), [](const auto &arg) {
                 return arg == "https://opencode.ai/install";
@@ -340,6 +343,7 @@ void installsTheAiCodingToolsAsTheUser()
                 return arg == "/home/tester/.local/bin/opencode";
             });
     }
+    g_assert_true(tar);
     g_assert_true(downloaded);
     g_assert_true(installed);
     g_assert_true(linked);
@@ -363,13 +367,13 @@ void installsAppImagesAsTheUser()
     SystemInfo system;
     system.targetUser = "tester";
     Selection selection;
-    selection.set("gaming/epic", true);
     selection.set("content/audacity", true);
+    selection.set("comms/artcraft", true);
 
     const auto plan = buildPlan(selection, system, "/run/lgl-abc123");
 
-    std::size_t epicSteps = 0;
     std::size_t audacitySteps = 0;
+    std::size_t artcraftSteps = 0;
     for (const auto &step : plan) {
         if (!step.local)
             continue;
@@ -379,14 +383,14 @@ void installsAppImagesAsTheUser()
             return a.rfind("/home/tester/Applications", 0) == 0;
         });
         g_assert_true(underApplications);
-        if (step.id.rfind("epic", 0) == 0)
-            ++epicSteps;
         if (step.id.rfind("audacity", 0) == 0)
             ++audacitySteps;
+        if (step.id.rfind("artcraft", 0) == 0)
+            ++artcraftSteps;
     }
 
-    g_assert_cmpuint(epicSteps, ==, 4);       // mkdir, download, publish, chmod
-    g_assert_cmpuint(audacitySteps, ==, 4);
+    g_assert_cmpuint(audacitySteps, ==, 4);   // mkdir, download, publish, chmod
+    g_assert_cmpuint(artcraftSteps, ==, 4);
 
     bool checked = false;
     for (const auto &step : plan) {
@@ -415,7 +419,6 @@ void createsUserScopeDesktopEntries()
     SystemInfo system;
     system.targetUser = "tester";
     Selection selection;
-    selection.set("gaming/epic", true);
     selection.set("content/audacity", true);
     selection.set("comms/artcraft", true);
 
@@ -432,7 +435,6 @@ void createsUserScopeDesktopEntries()
         g_assert_true(contents.find("Exec=" + step.desktop->executable) != std::string::npos);
         g_assert_true(contents.find("Icon=" + step.desktop->id) != std::string::npos);
     }
-    g_assert_true(ids.count("com.epicgames.EpicGamesLauncher") == 1);
     g_assert_true(ids.count("org.audacityteam.Audacity") == 1);
     g_assert_true(ids.count("ai.storyteller.artcraft-launcher") == 1);
 }

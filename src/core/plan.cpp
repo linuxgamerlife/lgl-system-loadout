@@ -217,6 +217,11 @@ Steps catalogSteps(const std::string &key, const SystemInfo &system, const std::
                                           "nodejs22-npm"};
             steps.push_back(std::move(node));
         }
+        if (key == "development/opencode") {
+            auto archive = dnf("opencode_tar", "Install tar", {"tar"});
+            archive.alreadyInstalledCheck = {"/usr/bin/rpm", "-q", "--quiet", "tar"};
+            steps.push_back(std::move(archive));
+        }
 
         steps.push_back(localStep(id + "_cache", "Create the installer cache directory",
                                   {"/usr/bin/mkdir", "-p", cache}));
@@ -332,18 +337,6 @@ Steps catalogSteps(const std::string &key, const SystemInfo &system, const std::
                      {"/usr/bin/dnf", "copr", "enable", "-y", "atim/heroic-games-launcher"}),
                 dnf("heroic_install", "Install heroic-games-launcher-bin",
                     {"heroic-games-launcher-bin"})};
-    if (key == "gaming/epic")
-        // Epic serves a moving installer at this URL, so there is no stable
-        // checksum to pin. The download is still atomic and the card is hidden
-        // on architectures Epic does not support.
-        return appImageSteps(
-            "epic", "EpicGamesLauncher-x86_64.AppImage",
-            "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/"
-            "download/EpicGamesLauncher-x86_64.AppImage",
-            system, {},
-            DesktopEntry{"com.epicgames.EpicGamesLauncher", "Epic Games Launcher",
-                         "Play games from the Epic Games Store", "",
-                         "/com/linuxgamerlife/loadout/icons/epic.png", "", "Game;"});
     if (key == "gaming/protonplus")
         return {flathub("flatpak_protonplus", "ProtonPlus", "com.vysp3r.ProtonPlus")};
     if (key == "gaming/protonup")
@@ -610,8 +603,8 @@ std::vector<InstallStep> buildPlan(const Selection &selection, const SystemInfo 
          {"gaming/kernel_modules_extra", "gaming/steam", "gaming/lutris", "gaming/goverlay", "gaming/wine", "gaming/protontricks"})
         if (selected(key))
             add(key);
-    for (const char *key : {"gaming/heroic", "gaming/epic", "gaming/protonplus",
-                            "gaming/protonup", "gaming/faugus"})
+    for (const char *key : {"gaming/heroic", "gaming/protonplus", "gaming/protonup",
+                            "gaming/faugus"})
         if (selected(key))
             add(key);
 
@@ -786,16 +779,13 @@ Check checkFor(const std::string &key, const SystemInfo &system)
         check.outputContains = key == "systools/tldr" ? "tldr" : "yt-dlp";
         return check;
     }
-    if (key == "gaming/epic" || key == "comms/artcraft" || key == "content/audacity") {
+    if (key == "comms/artcraft" || key == "content/audacity") {
         // AppImage filenames carry the release version, so match by pattern
         // rather than by an exact name. find prints the match, and the checker
         // treats any output as installed.
-        const char *pattern = key == "gaming/epic"        ? "*epic*launcher*.AppImage"
-                              : key == "comms/artcraft"   ? "*artcraft*.AppImage"
-                                                          : "*audacity*.AppImage";
-        const char *binary = key == "gaming/epic"      ? "*epic*launcher*"
-                             : key == "comms/artcraft" ? "*artcraft*"
-                                                       : "*audacity*";
+        const char *pattern =
+            key == "comms/artcraft" ? "*artcraft*.AppImage" : "*audacity*.AppImage";
+        const char *binary = key == "comms/artcraft" ? "*artcraft*" : "*audacity*";
 
         const std::string applications =
             (system.targetHome.empty() ? "/home/" + system.targetUser : system.targetHome) +

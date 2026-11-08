@@ -66,11 +66,11 @@ because `%check` validates both files.
 The version is defined in two places and must stay in sync:
 
 - `CMakeLists.txt`: `project(lgl-system-loadout VERSION 3.0.1 ...)`
-- `packaging/lgl-system-loadout.spec`: `Version: 3.0.1`, `Release: 1%{?dist}`
+- `packaging/lgl-system-loadout.spec`: `Version: 3.0.1`, `Release: 2%{?dist}`
 
 `LOADOUT_VERSION` is compiled from the CMake project version. The same version
 appears in the metainfo release entry and in `CHANGELOG.md`. The current package
-is **3.0.1-1**; release numbers are not separate application versions.
+is **3.0.1-2**; release numbers are not separate application versions.
 
 ## Reference audit
 

@@ -35,7 +35,7 @@ the Flatpak update are separate sessions and ask once each.
 
 The System Update step comes first, and the remaining steps stay hidden until it
 has run or you have confirmed skipping it. The current package release is
-**3.0.1-1**.
+**3.0.1-2**.
 
 ---
 
@@ -62,7 +62,7 @@ Download the RPM matching your Fedora release from the
 [latest GitHub release](https://github.com/linuxgamerlife/lgl-system-loadout/releases/latest)
 and open it in Discover.
 
-- `lgl-system-loadout-3.0.1-1.fc45.x86_64.rpm` (Fedora 45)
+- `lgl-system-loadout-3.0.1-2.fc45.x86_64.rpm` (Fedora 45)
 - Use the `fc44` for Fedora 44.
 
 After installing from Discover, close it and launch the app from your
@@ -89,7 +89,7 @@ without a desktop environment needs one: Noctalia's built-in agent lives under
 | **Multimedia** | ffmpeg, GStreamer plugins, VLC |
 | **Content Creation** | OBS Studio, Audacity 4.0.1 (AppImage), yt-dlp, FilmCraft and SoundCraft through the ArtCraft launcher |
 | **GPU Drivers** | AMD: Mesa, Vulkan, VA-API and firmware |
-| **Gaming** | Steam, Lutris, Wine, Protontricks, GOverlay, controller support, Heroic, Epic, Faugus, ProtonPlus, ProtonUp-Qt |
+| **Gaming** | Steam, Lutris, Wine, Protontricks, GOverlay, controller support, Heroic, Faugus, ProtonPlus, ProtonUp-Qt |
 | **Virtualisation** | virt-manager, libvirt, virt-install, virt-viewer, LGL VM Curator |
 | **Browsers** | Vivaldi, Helium, Chromium, Edge, Brave, Chrome · Firefox, LibreWolf, Waterfox, Zen, Floorp |
 | **Communication** | ArtCraft Launcher, Kate and KWrite, LibreOffice Calc and Writer, Discord, Telegram, Spotify, LGL CLIamp |
@@ -101,10 +101,10 @@ without a desktop environment needs one: Noctalia's built-in agent lives under
 
 AppImages are downloaded atomically as your normal user into `~/Applications`,
 verified against pinned SHA-256 checksums where the vendor provides one, and
-made executable. Audacity and ArtCraft have x86_64 and aarch64 assets; Epic is
-x86_64 only. Each installed AppImage also gets a desktop entry and icon under
-`~/.local/share`, so it appears in the application menu immediately. They are
-not managed by dnf, so they update themselves.
+made executable. Audacity and ArtCraft have x86_64 and aarch64 assets. Each
+installed AppImage also gets a desktop entry and icon under `~/.local/share`,
+so it appears in the application menu immediately. They are not managed by dnf,
+so they update themselves.
 
 ---
 

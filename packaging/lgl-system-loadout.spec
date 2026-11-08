@@ -1,6 +1,6 @@
 Name:           lgl-system-loadout
 Version:        3.0.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Guided setup wizard for Fedora: gaming, content creation, and development
 
 License:        MIT
@@ -95,6 +95,11 @@ fi
 %{_datadir}/icons/hicolor/256x256/apps/%{name}.png
 
 %changelog
+* Sun Nov 08 2026 LinuxGamerLife - 3.0.1-2
+- Remove Epic Games Launcher because Epic no longer publishes a Linux
+  AppImage; Heroic Games Launcher remains available
+- Install tar before opencode, whose installer needs it
+
 * Sun Nov 08 2026 LinuxGamerLife - 3.0.1-1
 - Allow multiple file managers and terminals on Essentials
 - Add a Wi-Fi section to Essentials with NetworkManager-wifi, wpa_supplicant
@@ -103,6 +108,8 @@ fi
 - Install opencode and Pi as normal selections instead of manual-only cards
 - Create user-scope desktop entries and icons for installed AppImages
 - Install the full qemu-system-x86 stack with VM Curator
+- Remove Epic Games Launcher because Epic no longer publishes a Linux
+  AppImage; Heroic Games Launcher remains available
 
 * Sun Oct 25 2026 LinuxGamerLife - 3.0.0-1
 - Rewrite the interface in GTK 4 (gtkmm) with libadwaita theming

@@ -110,8 +110,9 @@ folder as you, with no password. After the download, the app adds a desktop
 entry and icon under `~/.local/share`, so the launcher appears in your
 application menu without running it first.
 
-opencode and Pi also install as you, into your home directory. Pi installs
-Node.js and npm first through the normal package session.
+opencode and Pi also install as you, into your home directory. opencode
+installs tar first, and Pi installs Node.js and npm first, through the normal
+package session.
 
 ## Shortcuts
 
